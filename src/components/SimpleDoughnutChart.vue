@@ -19,7 +19,12 @@
       </div>
 
       <div class="chart-legend">
-        <div v-for="item in decoratedItems" :key="item.label" class="chart-legend-row">
+        <div
+          v-for="item in decoratedItems"
+          :key="item.label"
+          class="chart-legend-row chart-clickable"
+          @click="emit('select', item.label)"
+        >
           <span><i class="swatch" :style="{ background: item.color }"></i>{{ item.label }}</span>
           <strong>{{ valueFormatter(item.value) }}</strong>
         </div>
@@ -55,6 +60,8 @@ const props = defineProps({
     default: (value) => String(value)
   }
 })
+
+const emit = defineEmits(['select'])
 
 const decoratedItems = computed(() =>
   props.items.map((item, index) => ({

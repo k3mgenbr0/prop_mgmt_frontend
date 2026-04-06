@@ -22,10 +22,13 @@
         <RouterView />
       </main>
     </div>
+
+    <ToastStack />
   </div>
 </template>
 
 <script setup>
 import { RouterLink, RouterView } from 'vue-router'
 import SidebarNav from './components/SidebarNav.vue'
+import ToastStack from './components/ToastStack.vue'
 </script>

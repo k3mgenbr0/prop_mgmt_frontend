@@ -8,7 +8,7 @@ This frontend is designed for a landlord or property owner who wants to:
 - review income and expenses tied to each property
 - confirm that the UI is connected to a real backend and real database-backed data
 
-The app uses a clean card-based dashboard layout, sidebar navigation, live summary widgets, filters, and lightweight charts derived from API responses.
+The app uses a clean card-based dashboard layout, sidebar navigation, live summary widgets, filters, and lightweight charts derived from API responses. It also includes URL-persisted filters, CSV export, browser-saved property notes, toast feedback, and lightweight reporting tools for demos and day-to-day use.
 
 ## Table of Contents
 
@@ -76,6 +76,8 @@ At a high level:
    - expense record counts
    - estimated monthly rent total
    - income and expense trends
+   - previous-period KPI changes
+   - upcoming rent gap calculations
 
 ## Frontend and Backend Integration
 
@@ -110,6 +112,7 @@ The app makes the connection visible in the UI by showing:
 - counts and widgets derived from live responses
 - empty states when the backend returns no records
 - error states when requests fail
+- success toasts after key actions such as exports and record creation
 
 ## Features
 
@@ -119,6 +122,9 @@ The app makes the connection visible in the UI by showing:
 - top header with primary actions
 - live summary widgets
 - API status panel
+- date-range filtering with quick range buttons
+- KPI deltas compared to the previous period
+- upcoming rent collection snapshot
 - monthly income vs expense line chart
 - monthly rent by property bar chart
 - recent portfolio activity feed
@@ -130,6 +136,8 @@ The app makes the connection visible in the UI by showing:
 - occupancy and vacancy indicators
 - rent, income count, expense count, and net cash flow on property cards
 - filters for search, occupancy, and sorting
+- filter state saved in the URL
+- CSV export for the filtered property list
 - create property form
 - edit property form
 - delete property action with confirmation
@@ -140,6 +148,8 @@ The app makes the connection visible in the UI by showing:
 - redesigned hero section with badges and primary actions
 - tabbed overview, income, and expenses workspace
 - property-level charts for income by year and expenses by category
+- local browser-saved property notes
+- CSV export for property income and expense tables
 - view income records for that property
 - add new income records
 - view expense records for that property
@@ -148,16 +158,21 @@ The app makes the connection visible in the UI by showing:
 ### Income Overview
 
 - portfolio-wide income activity view
-- filters by property, year, and text search
+- filters by property, year, date range, and text search
+- URL-persisted filters
+- CSV export for the filtered table
 - monthly income trend chart
 - income by property chart
 
 ### Expense Overview
 
 - portfolio-wide expense activity view
-- filters by property, category, year, and text search
+- filters by property, category, year, date range, and text search
+- URL-persisted filters
+- CSV export for the filtered table
 - monthly expense trend chart
 - expenses by category chart
+- clicking chart categories can drive filtering
 
 ### API Status
 
@@ -170,6 +185,8 @@ This is the current folder structure relevant to the app:
 
 ```text
 src/
+  composables/
+    useQueryFilters.js
   api/
     client.js
     dashboardService.js
@@ -178,18 +195,24 @@ src/
     AlertMessage.vue
     ConnectionPanel.vue
     EmptyState.vue
+    LoadingSkeleton.vue
     LoadingState.vue
     PropertyForm.vue
     PropertyOverviewCard.vue
     RecordForm.vue
     SidebarNav.vue
     SimpleBarChart.vue
+    SimpleDoughnutChart.vue
     SimpleLineChart.vue
     StatCard.vue
+    ToastStack.vue
   router/
     index.js
   utils/
+    exporters.js
     formatters.js
+    propertyNotes.js
+    toasts.js
   views/
     ApiStatusView.vue
     DashboardView.vue
@@ -313,6 +336,7 @@ Here you should see:
 - occupancy metrics
 - income and expense counts
 - charts
+- date-range controls
 - API connection details
 
 If the backend is reachable, the dashboard should populate automatically.
@@ -336,6 +360,8 @@ This page shows:
 - monthly rent
 - income and expense record counts
 - net cash flow
+- URL-backed filters for search, occupancy, and sorting
+- CSV export for the currently filtered list
 
 ### 4. Add a property
 
@@ -350,9 +376,11 @@ From the properties list, click **View Details**.
 The detail page shows:
 - property information
 - summary totals
+- local browser notes for that property
 - income records
 - expense records
 - forms for adding new income and expense records
+- CSV export buttons for property-level transactions
 
 ### 6. Edit or delete a property
 
@@ -370,7 +398,9 @@ You can:
 - review live income records across the portfolio
 - filter by property
 - filter by year
+- filter by start and end date
 - search descriptions
+- export the filtered rows to CSV
 - view live charts based on the filtered data
 
 ### 8. Review expense activity
@@ -382,7 +412,9 @@ You can:
 - filter by property
 - filter by category
 - filter by year
+- filter by start and end date
 - search vendors or descriptions
+- export the filtered rows to CSV
 - view charts based on the filtered data
 
 ### 9. Use the API Status page
@@ -510,6 +542,24 @@ The dashboard aggregates per-property data by calling:
 - totals by property
 
 That gives a richer live snapshot, but it can take longer than a single endpoint call when many properties exist.
+
+### My filters disappeared
+
+Filters on the Dashboard, Properties, Income, and Expenses pages are stored in the URL query string.
+
+If a filter disappears, check whether:
+- you navigated to a different route
+- you manually cleared the URL query parameters
+- you used a quick range button that replaced the current dates
+
+### Where are property notes stored
+
+Property notes are currently stored in browser `localStorage`, not in the backend API.
+
+That means:
+- notes stay on the same browser
+- notes are not shared across devices
+- clearing browser storage will remove them
 <<<<<<< HEAD
 
 ## Suggested Screenshots for GitHub

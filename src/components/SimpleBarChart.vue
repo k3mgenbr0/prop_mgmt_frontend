@@ -14,7 +14,7 @@
     <div v-else class="chart-shell">
       <svg viewBox="0 0 360 180" class="chart-svg" role="img" :aria-label="title">
         <line x1="24" y1="150" x2="340" y2="150" class="chart-axis" />
-        <g v-for="(item, index) in normalizedItems" :key="item.label">
+        <g v-for="(item, index) in normalizedItems" :key="item.label" class="chart-clickable" @click="emit('select', item.label)">
           <rect
             :x="40 + index * barSpacing"
             :y="150 - item.height"
@@ -35,7 +35,7 @@
       </svg>
 
       <div class="chart-legend">
-        <div v-for="item in items" :key="item.label" class="chart-legend-row">
+        <div v-for="item in items" :key="item.label" class="chart-legend-row chart-clickable" @click="emit('select', item.label)">
           <span>{{ item.label }}</span>
           <strong>{{ valueFormatter(item.value) }}</strong>
         </div>
@@ -65,6 +65,8 @@ const props = defineProps({
     default: (value) => String(value)
   }
 })
+
+const emit = defineEmits(['select'])
 
 const barWidth = 42
 const barSpacing = 62

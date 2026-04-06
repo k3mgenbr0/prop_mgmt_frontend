@@ -6,13 +6,18 @@
         <h2>Income Activity</h2>
         <p class="muted">This view aggregates live income records fetched property by property from the backend.</p>
       </div>
-      <button class="button button-secondary" :disabled="loading" @click="loadIncomeOverview">
-        {{ loading ? 'Refreshing...' : 'Refresh' }}
-      </button>
+      <div class="card-actions">
+        <button class="button button-secondary" :disabled="loading" @click="loadIncomeOverview">
+          {{ loading ? 'Refreshing...' : 'Refresh' }}
+        </button>
+        <button class="button button-secondary" :disabled="filteredIncomeRows.length === 0" @click="exportIncome">
+          Export CSV
+        </button>
+      </div>
     </div>
 
     <AlertMessage :message="errorMessage" variant="error" />
-    <LoadingState v-if="loading" label="Loading income records..." />
+    <LoadingSkeleton v-if="loading" :count="5" />
 
     <template v-else>
       <div class="stats-grid">
@@ -47,6 +52,16 @@
           </label>
 
           <label>
+            Start Date
+            <input v-model="filters.start" type="date" />
+          </label>
+
+          <label>
+            End Date
+            <input v-model="filters.end" type="date" />
+          </label>
+
+          <label class="full-width">
             Search Description
             <input v-model.trim="filters.search" placeholder="Rent, back payment, April..." />
           </label>
@@ -67,6 +82,7 @@
           title="Income by property"
           :items="incomeByProperty"
           :value-formatter="formatCurrency"
+          @select="filters.property = $event"
         />
       </div>
 
@@ -99,22 +115,30 @@
 </template>
 
 <script setup>
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { getPortfolioSnapshot } from '../api/dashboardService'
+import { useQueryFilters } from '../composables/useQueryFilters'
 import AlertMessage from '../components/AlertMessage.vue'
 import EmptyState from '../components/EmptyState.vue'
-import LoadingState from '../components/LoadingState.vue'
+import LoadingSkeleton from '../components/LoadingSkeleton.vue'
 import SimpleBarChart from '../components/SimpleBarChart.vue'
 import SimpleLineChart from '../components/SimpleLineChart.vue'
 import StatCard from '../components/StatCard.vue'
-import { formatCurrency, formatDate, parseCurrencyString } from '../utils/formatters'
+import { downloadCsv } from '../utils/exporters'
+import { formatCurrency, formatDate, inDateRange, parseCurrencyString } from '../utils/formatters'
+import { pushToast } from '../utils/toasts'
 
+const route = useRoute()
+const router = useRouter()
 const loading = ref(true)
 const errorMessage = ref('')
 const snapshot = ref({ properties: [], summary: { totalProperties: 0, totalIncomeRecords: 0, totalIncomeAmount: 0 } })
-const filters = reactive({
+const filters = useQueryFilters(route, router, {
   property: '',
   year: '',
+  start: '',
+  end: '',
   search: ''
 })
 
@@ -136,12 +160,13 @@ const filteredIncomeRows = computed(() =>
   allIncomeRows.value.filter((row) => {
     const matchesProperty = !filters.property || row.propertyName === filters.property
     const matchesYear = !filters.year || row.year === filters.year
+    const matchesRange = inDateRange(row.date, filters.start, filters.end)
     const matchesSearch =
       !filters.search ||
       row.propertyName.toLowerCase().includes(filters.search.toLowerCase()) ||
       (row.description || '').toLowerCase().includes(filters.search.toLowerCase())
 
-    return matchesProperty && matchesYear && matchesSearch
+    return matchesProperty && matchesYear && matchesRange && matchesSearch
   })
 )
 
@@ -196,6 +221,24 @@ async function loadIncomeOverview() {
   } finally {
     loading.value = false
   }
+}
+
+function exportIncome() {
+  downloadCsv(
+    'income-records.csv',
+    filteredIncomeRows.value.map((row) => ({
+      property: row.propertyName,
+      date: row.date,
+      amount: row.amount,
+      description: row.description || ''
+    }))
+  )
+
+  pushToast({
+    title: 'Export ready',
+    message: 'The filtered income records were downloaded as CSV.',
+    variant: 'success'
+  })
 }
 
 onMounted(loadIncomeOverview)

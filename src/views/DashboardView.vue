@@ -19,16 +19,58 @@
     <AlertMessage :message="flashMessage" variant="success" />
     <AlertMessage :message="errorMessage" variant="error" />
 
-    <LoadingState v-if="loading" label="Loading dashboard from the live API..." />
+    <section class="card filters-card">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Date Range</p>
+          <h3>Focus on a reporting window</h3>
+        </div>
+      </div>
+
+      <div class="filter-grid">
+        <label>
+          Start Date
+          <input v-model="filters.start" type="date" />
+        </label>
+
+        <label>
+          End Date
+          <input v-model="filters.end" type="date" />
+        </label>
+
+        <div class="quick-filter-group">
+          <button class="button button-secondary" @click="setQuickRange(30)">Last 30 days</button>
+          <button class="button button-secondary" @click="setQuickRange(90)">Last 90 days</button>
+          <button class="button button-secondary" @click="clearRange">All time</button>
+        </div>
+      </div>
+    </section>
+
+    <LoadingSkeleton v-if="loading" :count="6" />
 
     <template v-else>
       <div class="stats-grid">
         <StatCard label="Total Properties" :value="String(snapshot.summary.totalProperties)" />
         <StatCard label="Occupied" :value="String(snapshot.summary.occupiedProperties)" />
         <StatCard label="Vacant" :value="String(snapshot.summary.vacantProperties)" />
-        <StatCard label="Monthly Rent Total" :value="formatCurrency(snapshot.summary.estimatedMonthlyRentTotal)" />
-        <StatCard label="Income Records" :value="String(snapshot.summary.totalIncomeRecords)" />
-        <StatCard label="Expense Records" :value="String(snapshot.summary.totalExpenseRecords)" />
+        <StatCard label="Expected Monthly Rent" :value="formatCurrency(snapshot.summary.estimatedMonthlyRentTotal)" />
+        <StatCard label="Income In Range" :value="formatCurrency(filteredSummary.incomeTotal)" />
+        <StatCard label="Expenses In Range" :value="formatCurrency(filteredSummary.expenseTotal)" />
+      </div>
+
+      <div class="kpi-strip">
+        <section class="card delta-card">
+          <span class="mini-label">Income change vs previous period</span>
+          <strong>{{ signedCurrency(deltas.income) }}</strong>
+        </section>
+        <section class="card delta-card">
+          <span class="mini-label">Expense change vs previous period</span>
+          <strong>{{ signedCurrency(deltas.expense) }}</strong>
+        </section>
+        <section class="card delta-card">
+          <span class="mini-label">Net cash flow change</span>
+          <strong>{{ signedCurrency(deltas.net) }}</strong>
+        </section>
       </div>
 
       <div class="detail-grid dashboard-grid">
@@ -43,23 +85,23 @@
           <section class="card">
             <div class="section-heading">
               <div>
-                <p class="eyebrow">Portfolio Metrics</p>
-                <h3>Live totals derived from the database</h3>
+                <p class="eyebrow">Rent Snapshot</p>
+                <h3>Upcoming rent collection</h3>
               </div>
             </div>
 
             <div class="mini-stats mini-stats-wide">
               <div>
-                <span class="mini-label">Total Income</span>
-                <strong>{{ formatCurrency(snapshot.summary.totalIncomeAmount) }}</strong>
+                <span class="mini-label">Expected this month</span>
+                <strong>{{ formatCurrency(upcomingRent.expected) }}</strong>
               </div>
               <div>
-                <span class="mini-label">Total Expenses</span>
-                <strong>{{ formatCurrency(snapshot.summary.totalExpenseAmount) }}</strong>
+                <span class="mini-label">Received this month</span>
+                <strong>{{ formatCurrency(upcomingRent.received) }}</strong>
               </div>
               <div>
-                <span class="mini-label">Net Cash Flow</span>
-                <strong>{{ formatCurrency(snapshot.summary.netCashFlowAmount) }}</strong>
+                <span class="mini-label">Remaining gap</span>
+                <strong>{{ formatCurrency(upcomingRent.remaining) }}</strong>
               </div>
             </div>
           </section>
@@ -113,30 +155,6 @@
               </article>
             </div>
           </section>
-
-          <section class="card">
-            <div class="section-heading">
-              <div>
-                <p class="eyebrow">Properties</p>
-                <h3>Live property feed</h3>
-              </div>
-              <RouterLink class="button button-secondary" to="/properties">Open full list</RouterLink>
-            </div>
-
-            <EmptyState
-              v-if="snapshot.properties.length === 0"
-              title="No properties returned by the API"
-              description="The frontend is connected, but the backend returned an empty property list."
-            />
-
-            <div v-else class="record-list">
-              <PropertyOverviewCard
-                v-for="property in snapshot.properties.slice(0, 3)"
-                :key="property.property_id"
-                :property="property"
-              />
-            </div>
-          </section>
         </div>
       </div>
     </template>
@@ -145,19 +163,20 @@
 
 <script setup>
 import { computed, onMounted, ref } from 'vue'
-import { RouterLink, useRoute } from 'vue-router'
+import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { getPortfolioSnapshot } from '../api/dashboardService'
+import { useQueryFilters } from '../composables/useQueryFilters'
 import AlertMessage from '../components/AlertMessage.vue'
 import ConnectionPanel from '../components/ConnectionPanel.vue'
 import EmptyState from '../components/EmptyState.vue'
-import LoadingState from '../components/LoadingState.vue'
-import PropertyOverviewCard from '../components/PropertyOverviewCard.vue'
+import LoadingSkeleton from '../components/LoadingSkeleton.vue'
 import SimpleBarChart from '../components/SimpleBarChart.vue'
 import SimpleLineChart from '../components/SimpleLineChart.vue'
 import StatCard from '../components/StatCard.vue'
-import { formatCurrency, parseCurrencyString } from '../utils/formatters'
+import { formatCurrency, inDateRange, parseCurrencyString } from '../utils/formatters'
 
 const route = useRoute()
+const router = useRouter()
 const apiBaseUrl =
   import.meta.env.VITE_API_BASE_URL ||
   'https://prop-mgmt-api-129124698283.us-central1.run.app'
@@ -165,6 +184,10 @@ const apiBaseUrl =
 const loading = ref(true)
 const errorMessage = ref('')
 const flashMessage = ref('')
+const filters = useQueryFilters(route, router, {
+  start: '',
+  end: ''
+})
 const snapshot = ref({
   apiStatus: null,
   properties: [],
@@ -182,6 +205,32 @@ const snapshot = ref({
   lastRefreshed: ''
 })
 
+const filteredSummary = computed(() => {
+  const incomeTotal = snapshot.value.properties.reduce(
+    (sum, property) =>
+      sum +
+      property.incomeRecords
+        .filter((record) => inDateRange(record.date, filters.start, filters.end))
+        .reduce((inner, record) => inner + parseCurrencyString(record.amount), 0),
+    0
+  )
+
+  const expenseTotal = snapshot.value.properties.reduce(
+    (sum, property) =>
+      sum +
+      property.expenseRecords
+        .filter((record) => inDateRange(record.date, filters.start, filters.end))
+        .reduce((inner, record) => inner + parseCurrencyString(record.amount), 0),
+    0
+  )
+
+  return {
+    incomeTotal,
+    expenseTotal,
+    netTotal: incomeTotal - expenseTotal
+  }
+})
+
 const propertyRentBars = computed(() =>
   snapshot.value.properties.map((property) => ({
     label: property.name,
@@ -193,19 +242,23 @@ const monthlyTrend = computed(() => {
   const buckets = new Map()
 
   snapshot.value.properties.forEach((property) => {
-    property.incomeRecords.forEach((record) => {
-      const key = record.date.slice(0, 7)
-      const current = buckets.get(key) || { label: key.slice(5), primary: 0, secondary: 0 }
-      current.primary += parseCurrencyString(record.amount)
-      buckets.set(key, current)
-    })
+    property.incomeRecords
+      .filter((record) => inDateRange(record.date, filters.start, filters.end))
+      .forEach((record) => {
+        const key = record.date.slice(0, 7)
+        const current = buckets.get(key) || { label: key.slice(5), primary: 0, secondary: 0 }
+        current.primary += parseCurrencyString(record.amount)
+        buckets.set(key, current)
+      })
 
-    property.expenseRecords.forEach((record) => {
-      const key = record.date.slice(0, 7)
-      const current = buckets.get(key) || { label: key.slice(5), primary: 0, secondary: 0 }
-      current.secondary += parseCurrencyString(record.amount)
-      buckets.set(key, current)
-    })
+    property.expenseRecords
+      .filter((record) => inDateRange(record.date, filters.start, filters.end))
+      .forEach((record) => {
+        const key = record.date.slice(0, 7)
+        const current = buckets.get(key) || { label: key.slice(5), primary: 0, secondary: 0 }
+        current.secondary += parseCurrencyString(record.amount)
+        buckets.set(key, current)
+      })
   })
 
   return [...buckets.entries()]
@@ -217,28 +270,137 @@ const monthlyTrend = computed(() => {
 const recentActivity = computed(() =>
   snapshot.value.properties
     .flatMap((property) => [
-      ...property.incomeRecords.map((record) => ({
-        key: `income-${property.property_id}-${record.income_id}`,
-        type: 'income',
-        title: 'Income received',
-        propertyName: property.name,
-        description: record.description || 'No description provided.',
-        amount: record.amount,
-        date: record.date
-      })),
-      ...property.expenseRecords.map((record) => ({
-        key: `expense-${property.property_id}-${record.expense_id}`,
-        type: 'expense',
-        title: record.category,
-        propertyName: property.name,
-        description: record.description || record.vendor || 'No description provided.',
-        amount: record.amount,
-        date: record.date
-      }))
+      ...property.incomeRecords
+        .filter((record) => inDateRange(record.date, filters.start, filters.end))
+        .map((record) => ({
+          key: `income-${property.property_id}-${record.income_id}`,
+          type: 'income',
+          title: 'Income received',
+          propertyName: property.name,
+          description: record.description || 'No description provided.',
+          amount: record.amount,
+          date: record.date
+        })),
+      ...property.expenseRecords
+        .filter((record) => inDateRange(record.date, filters.start, filters.end))
+        .map((record) => ({
+          key: `expense-${property.property_id}-${record.expense_id}`,
+          type: 'expense',
+          title: record.category,
+          propertyName: property.name,
+          description: record.description || record.vendor || 'No description provided.',
+          amount: record.amount,
+          date: record.date
+        }))
     ])
     .sort((left, right) => right.date.localeCompare(left.date))
     .slice(0, 6)
 )
+
+const upcomingRent = computed(() => {
+  const today = new Date()
+  const monthKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`
+  const expected = snapshot.value.summary.estimatedMonthlyRentTotal
+  const received = snapshot.value.properties.reduce(
+    (sum, property) =>
+      sum +
+      property.incomeRecords
+        .filter((record) => record.date.startsWith(monthKey))
+        .reduce((inner, record) => inner + parseCurrencyString(record.amount), 0),
+    0
+  )
+
+  return {
+    expected,
+    received,
+    remaining: Math.max(expected - received, 0)
+  }
+})
+
+const deltas = computed(() => {
+  if (!(filters.start && filters.end)) {
+    const now = new Date()
+    const currentStart = new Date(now)
+    currentStart.setDate(now.getDate() - 29)
+    const previousEnd = new Date(currentStart)
+    previousEnd.setDate(currentStart.getDate() - 1)
+    const previousStart = new Date(previousEnd)
+    previousStart.setDate(previousEnd.getDate() - 29)
+
+    return computeDelta(windowRange(currentStart, now), windowRange(previousStart, previousEnd))
+  }
+
+  const start = new Date(filters.start)
+  const end = new Date(filters.end)
+  const diffDays = Math.max(1, Math.round((end - start) / 86400000) + 1)
+  const previousEnd = new Date(start)
+  previousEnd.setDate(start.getDate() - 1)
+  const previousStart = new Date(previousEnd)
+  previousStart.setDate(previousEnd.getDate() - (diffDays - 1))
+
+  return computeDelta(windowRange(start, end), windowRange(previousStart, previousEnd))
+})
+
+function windowRange(start, end) {
+  return {
+    start: start.toISOString().slice(0, 10),
+    end: end.toISOString().slice(0, 10)
+  }
+}
+
+function computePeriodTotals(range) {
+  let income = 0
+  let expense = 0
+
+  snapshot.value.properties.forEach((property) => {
+    property.incomeRecords
+      .filter((record) => inDateRange(record.date, range.start, range.end))
+      .forEach((record) => {
+        income += parseCurrencyString(record.amount)
+      })
+
+    property.expenseRecords
+      .filter((record) => inDateRange(record.date, range.start, range.end))
+      .forEach((record) => {
+        expense += parseCurrencyString(record.amount)
+      })
+  })
+
+  return {
+    income,
+    expense,
+    net: income - expense
+  }
+}
+
+function computeDelta(currentRange, previousRange) {
+  const current = computePeriodTotals(currentRange)
+  const previous = computePeriodTotals(previousRange)
+
+  return {
+    income: current.income - previous.income,
+    expense: current.expense - previous.expense,
+    net: current.net - previous.net
+  }
+}
+
+function signedCurrency(value) {
+  const sign = value >= 0 ? '+' : '-'
+  return `${sign}${formatCurrency(Math.abs(value))}`
+}
+
+function setQuickRange(days) {
+  const end = new Date()
+  const start = new Date()
+  start.setDate(end.getDate() - (days - 1))
+  filters.start = start.toISOString().slice(0, 10)
+  filters.end = end.toISOString().slice(0, 10)
+}
+
+function clearRange() {
+  filters.start = ''
+  filters.end = ''
+}
 
 async function loadDashboard() {
   loading.value = true

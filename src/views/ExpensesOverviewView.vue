@@ -6,13 +6,18 @@
         <h2>Expense Activity</h2>
         <p class="muted">This view aggregates live expense records fetched property by property from the backend.</p>
       </div>
-      <button class="button button-secondary" :disabled="loading" @click="loadExpenseOverview">
-        {{ loading ? 'Refreshing...' : 'Refresh' }}
-      </button>
+      <div class="card-actions">
+        <button class="button button-secondary" :disabled="loading" @click="loadExpenseOverview">
+          {{ loading ? 'Refreshing...' : 'Refresh' }}
+        </button>
+        <button class="button button-secondary" :disabled="filteredExpenseRows.length === 0" @click="exportExpenses">
+          Export CSV
+        </button>
+      </div>
     </div>
 
     <AlertMessage :message="errorMessage" variant="error" />
-    <LoadingState v-if="loading" label="Loading expense records..." />
+    <LoadingSkeleton v-if="loading" :count="5" />
 
     <template v-else>
       <div class="stats-grid">
@@ -55,6 +60,16 @@
           </label>
 
           <label>
+            Start Date
+            <input v-model="filters.start" type="date" />
+          </label>
+
+          <label>
+            End Date
+            <input v-model="filters.end" type="date" />
+          </label>
+
+          <label class="full-width">
             Search Vendor / Description
             <input v-model.trim="filters.search" placeholder="Mortgage, Allstate, repair..." />
           </label>
@@ -75,6 +90,7 @@
           title="Expenses by category"
           :items="expenseByCategory"
           :value-formatter="formatCurrency"
+          @select="filters.category = $event"
         />
       </div>
 
@@ -108,23 +124,31 @@
 </template>
 
 <script setup>
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { getPortfolioSnapshot } from '../api/dashboardService'
+import { useQueryFilters } from '../composables/useQueryFilters'
 import AlertMessage from '../components/AlertMessage.vue'
 import EmptyState from '../components/EmptyState.vue'
-import LoadingState from '../components/LoadingState.vue'
+import LoadingSkeleton from '../components/LoadingSkeleton.vue'
 import SimpleBarChart from '../components/SimpleBarChart.vue'
 import SimpleLineChart from '../components/SimpleLineChart.vue'
 import StatCard from '../components/StatCard.vue'
-import { formatCurrency, formatDate, parseCurrencyString } from '../utils/formatters'
+import { downloadCsv } from '../utils/exporters'
+import { formatCurrency, formatDate, inDateRange, parseCurrencyString } from '../utils/formatters'
+import { pushToast } from '../utils/toasts'
 
+const route = useRoute()
+const router = useRouter()
 const loading = ref(true)
 const errorMessage = ref('')
 const snapshot = ref({ properties: [], summary: { totalProperties: 0, totalExpenseRecords: 0, totalExpenseAmount: 0 } })
-const filters = reactive({
+const filters = useQueryFilters(route, router, {
   property: '',
   category: '',
   year: '',
+  start: '',
+  end: '',
   search: ''
 })
 
@@ -147,6 +171,7 @@ const filteredExpenseRows = computed(() =>
     const matchesProperty = !filters.property || row.propertyName === filters.property
     const matchesCategory = !filters.category || row.category === filters.category
     const matchesYear = !filters.year || row.year === filters.year
+    const matchesRange = inDateRange(row.date, filters.start, filters.end)
     const search = filters.search.toLowerCase()
     const matchesSearch =
       !filters.search ||
@@ -154,7 +179,7 @@ const filteredExpenseRows = computed(() =>
       (row.vendor || '').toLowerCase().includes(search) ||
       (row.description || '').toLowerCase().includes(search)
 
-    return matchesProperty && matchesCategory && matchesYear && matchesSearch
+    return matchesProperty && matchesCategory && matchesYear && matchesRange && matchesSearch
   })
 )
 
@@ -213,6 +238,26 @@ async function loadExpenseOverview() {
   } finally {
     loading.value = false
   }
+}
+
+function exportExpenses() {
+  downloadCsv(
+    'expense-records.csv',
+    filteredExpenseRows.value.map((row) => ({
+      property: row.propertyName,
+      date: row.date,
+      category: row.category,
+      vendor: row.vendor || '',
+      amount: row.amount,
+      description: row.description || ''
+    }))
+  )
+
+  pushToast({
+    title: 'Export ready',
+    message: 'The filtered expense records were downloaded as CSV.',
+    variant: 'success'
+  })
 }
 
 onMounted(loadExpenseOverview)

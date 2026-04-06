@@ -5,12 +5,15 @@
         <p class="eyebrow">Portfolio</p>
         <h2>Properties</h2>
         <p class="muted">
-          Review every rental property fetched from the live API, with occupancy and record counts derived from backend responses.
+          Review every rental property fetched from the live API, then narrow the list with shareable URL-backed filters.
         </p>
       </div>
       <div class="card-actions">
         <button class="button button-secondary" :disabled="loading" @click="loadProperties">
           {{ loading ? 'Refreshing...' : 'Refresh' }}
+        </button>
+        <button class="button button-secondary" :disabled="filteredProperties.length === 0" @click="exportProperties">
+          Export CSV
         </button>
         <RouterLink class="button button-primary" to="/properties/new">Add Property</RouterLink>
       </div>
@@ -19,7 +22,7 @@
     <AlertMessage :message="flashMessage" variant="success" />
     <AlertMessage :message="errorMessage" variant="error" />
 
-    <LoadingState v-if="loading" label="Loading properties..." />
+    <LoadingSkeleton v-if="loading" :count="4" />
 
     <template v-else>
       <div class="stats-grid">
@@ -96,19 +99,22 @@
 </template>
 
 <script setup>
-import { computed, onMounted, reactive, ref } from 'vue'
-import { useRoute } from 'vue-router'
-import { RouterLink } from 'vue-router'
+import { computed, onMounted, ref } from 'vue'
+import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { getPortfolioSnapshot } from '../api/dashboardService'
+import { useQueryFilters } from '../composables/useQueryFilters'
 import AlertMessage from '../components/AlertMessage.vue'
 import ConnectionPanel from '../components/ConnectionPanel.vue'
 import EmptyState from '../components/EmptyState.vue'
-import LoadingState from '../components/LoadingState.vue'
+import LoadingSkeleton from '../components/LoadingSkeleton.vue'
 import PropertyOverviewCard from '../components/PropertyOverviewCard.vue'
 import StatCard from '../components/StatCard.vue'
+import { downloadCsv } from '../utils/exporters'
 import { formatCurrency } from '../utils/formatters'
+import { pushToast } from '../utils/toasts'
 
 const route = useRoute()
+const router = useRouter()
 const apiBaseUrl =
   import.meta.env.VITE_API_BASE_URL ||
   'https://prop-mgmt-api-129124698283.us-central1.run.app'
@@ -119,7 +125,7 @@ const lastRefreshed = ref('')
 const loading = ref(true)
 const errorMessage = ref('')
 const flashMessage = ref('')
-const filters = reactive({
+const filters = useQueryFilters(route, router, {
   search: '',
   occupancy: '',
   sortBy: 'name'
@@ -151,22 +157,10 @@ const filteredProperties = computed(() => {
       return matchesSearch && matchesOccupancy
     })
     .sort((left, right) => {
-      if (filters.sortBy === 'rent-desc') {
-        return right.monthlyRentValue - left.monthlyRentValue
-      }
-
-      if (filters.sortBy === 'rent-asc') {
-        return left.monthlyRentValue - right.monthlyRentValue
-      }
-
-      if (filters.sortBy === 'cashflow-desc') {
-        return right.netCashFlowValue - left.netCashFlowValue
-      }
-
-      if (filters.sortBy === 'cashflow-asc') {
-        return left.netCashFlowValue - right.netCashFlowValue
-      }
-
+      if (filters.sortBy === 'rent-desc') return right.monthlyRentValue - left.monthlyRentValue
+      if (filters.sortBy === 'rent-asc') return left.monthlyRentValue - right.monthlyRentValue
+      if (filters.sortBy === 'cashflow-desc') return right.netCashFlowValue - left.netCashFlowValue
+      if (filters.sortBy === 'cashflow-asc') return left.netCashFlowValue - right.netCashFlowValue
       return left.name.localeCompare(right.name)
     })
 })
@@ -186,6 +180,30 @@ async function loadProperties() {
   } finally {
     loading.value = false
   }
+}
+
+function exportProperties() {
+  downloadCsv(
+    'properties.csv',
+    filteredProperties.value.map((property) => ({
+      property_id: property.property_id,
+      name: property.name,
+      property_type: property.property_type,
+      city: property.city,
+      state: property.state,
+      tenant_name: property.tenant_name || '',
+      monthly_rent: property.monthly_rent,
+      income_records: property.incomeRecordCount,
+      expense_records: property.expenseRecordCount,
+      net_cash_flow: property.totals.net_cash_flow
+    }))
+  )
+
+  pushToast({
+    title: 'Export ready',
+    message: 'The filtered property list was downloaded as CSV.',
+    variant: 'success'
+  })
 }
 
 onMounted(() => {

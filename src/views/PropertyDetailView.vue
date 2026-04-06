@@ -84,6 +84,25 @@
             </div>
           </div>
 
+          <section class="card">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Notes</p>
+                <h3>Property notes</h3>
+              </div>
+              <button class="button button-secondary" :disabled="savingNote" @click="saveNote">
+                {{ savingNote ? 'Saving...' : 'Save Note' }}
+              </button>
+            </div>
+
+            <textarea
+              v-model="propertyNote"
+              rows="5"
+              placeholder="Track tenant reminders, maintenance follow-up, or demo notes here. Saved in this browser."
+            />
+            <p class="muted">This note is stored locally in your browser because the current backend does not expose a notes endpoint.</p>
+          </section>
+
           <div class="detail-grid">
             <SimpleBarChart
               eyebrow="Overview"
@@ -103,6 +122,12 @@
 
         <div v-else-if="activeTab === 'income'" class="stack-lg">
           <AlertMessage :message="incomeSuccess" variant="success" />
+
+          <div class="card-actions">
+            <button class="button button-secondary" :disabled="incomeRecords.length === 0" @click="exportIncome">
+              Export Income CSV
+            </button>
+          </div>
 
           <RecordForm
             v-if="visibleForm === 'income'"
@@ -141,6 +166,12 @@
 
         <div v-else class="stack-lg">
           <AlertMessage :message="expenseSuccess" variant="success" />
+
+          <div class="card-actions">
+            <button class="button button-secondary" :disabled="expenseRecords.length === 0" @click="exportExpenses">
+              Export Expenses CSV
+            </button>
+          </div>
 
           <RecordForm
             v-if="visibleForm === 'expense'"
@@ -198,6 +229,9 @@ import {
   getPropertySummary
 } from '../api/propertyService'
 import { formatCurrency, formatDate, parseCurrencyString } from '../utils/formatters'
+import { downloadCsv } from '../utils/exporters'
+import { getPropertyNote, savePropertyNote } from '../utils/propertyNotes'
+import { pushToast } from '../utils/toasts'
 import AlertMessage from '../components/AlertMessage.vue'
 import EmptyState from '../components/EmptyState.vue'
 import LoadingState from '../components/LoadingState.vue'
@@ -225,8 +259,10 @@ const loadingExpenses = ref(true)
 const deleting = ref(false)
 const savingIncome = ref(false)
 const savingExpense = ref(false)
+const savingNote = ref(false)
 const activeTab = ref('overview')
 const visibleForm = ref('')
+const propertyNote = ref('')
 
 const pageError = ref('')
 const flashMessage = ref('')
@@ -337,6 +373,11 @@ async function handleIncomeSubmit(payload) {
     incomeDefaults.value = { date: payload.date }
     summary.value.totals = await getPropertyTotals(props.id)
     visibleForm.value = ''
+    pushToast({
+      title: 'Income added',
+      message: 'The new income record was saved successfully.',
+      variant: 'success'
+    })
     await loadIncome()
   } catch (error) {
     incomeError.value = error.message
@@ -356,6 +397,11 @@ async function handleExpenseSubmit(payload) {
     expenseDefaults.value = { date: payload.date }
     summary.value.totals = await getPropertyTotals(props.id)
     visibleForm.value = ''
+    pushToast({
+      title: 'Expense added',
+      message: 'The new expense record was saved successfully.',
+      variant: 'success'
+    })
     await loadExpenses()
   } catch (error) {
     expenseError.value = error.message
@@ -385,8 +431,59 @@ async function handleDelete() {
   }
 }
 
+function saveNote() {
+  savingNote.value = true
+  savePropertyNote(props.id, propertyNote.value)
+  pushToast({
+    title: 'Note saved',
+    message: 'This property note was saved locally in your browser.',
+    variant: 'success'
+  })
+
+  window.setTimeout(() => {
+    savingNote.value = false
+  }, 300)
+}
+
+function exportIncome() {
+  downloadCsv(
+    `property-${props.id}-income.csv`,
+    incomeRecords.value.map((row) => ({
+      date: row.date,
+      amount: row.amount,
+      description: row.description || ''
+    }))
+  )
+
+  pushToast({
+    title: 'Income export ready',
+    message: 'The property income records were downloaded as CSV.',
+    variant: 'success'
+  })
+}
+
+function exportExpenses() {
+  downloadCsv(
+    `property-${props.id}-expenses.csv`,
+    expenseRecords.value.map((row) => ({
+      date: row.date,
+      category: row.category,
+      vendor: row.vendor || '',
+      amount: row.amount,
+      description: row.description || ''
+    }))
+  )
+
+  pushToast({
+    title: 'Expense export ready',
+    message: 'The property expense records were downloaded as CSV.',
+    variant: 'success'
+  })
+}
+
 onMounted(async () => {
   flashMessage.value = route.query.message || ''
+  propertyNote.value = getPropertyNote(props.id)
   await Promise.all([loadSummary(), loadIncome(), loadExpenses()])
 })
 </script>
