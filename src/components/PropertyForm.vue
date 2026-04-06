@@ -48,7 +48,7 @@
       <button class="button button-primary" :disabled="submitting" type="submit">
         {{ submitting ? submitLabelBusy : submitLabel }}
       </button>
-      <RouterLink class="button button-secondary" to="/">Cancel</RouterLink>
+      <RouterLink class="button button-secondary" to="/properties">Cancel</RouterLink>
     </div>
   </form>
 </template>

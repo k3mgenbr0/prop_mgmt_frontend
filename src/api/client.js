@@ -1,4 +1,6 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL ||
+  'https://prop-mgmt-api-129124698283.us-central1.run.app'
 
 if (!API_BASE_URL) {
   console.warn('VITE_API_BASE_URL is not set. API requests will fail until it is configured.')
