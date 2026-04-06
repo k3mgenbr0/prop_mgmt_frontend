@@ -2,6 +2,14 @@
 
 Vue 3 + Vite frontend for the Property Management App. It connects to the live FastAPI backend using `VITE_API_BASE_URL`.
 
+Production builds default to:
+
+```env
+VITE_API_BASE_URL=https://prop-mgmt-api-129124698283.us-central1.run.app
+```
+
+That value is stored in `.env.production` so Cloud Run builds still work even if no Docker build arg is passed. A Docker build arg can still override it.
+
 ## Local setup
 
 1. Install dependencies:
