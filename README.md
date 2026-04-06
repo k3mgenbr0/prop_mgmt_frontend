@@ -25,8 +25,7 @@ The app uses a clean card-based dashboard layout, sidebar navigation, live summa
 - [How to Use the App](#how-to-use-the-app)
 - [Deployment Notes](#deployment-notes)
 - [Troubleshooting](#troubleshooting)
-- [Suggested Screenshots for GitHub](#suggested-screenshots)
-
+  
 ## Overview
 
 This repository contains the frontend for a Property Management application built with Vue 3 and Vite.
@@ -508,6 +507,7 @@ The dashboard aggregates per-property data by calling:
 - totals by property
 
 That gives a richer live snapshot, but it can take longer than a single endpoint call when many properties exist.
+<<<<<<< HEAD
 
 ## Suggested Screenshots for GitHub
 
@@ -554,3 +554,5 @@ If you are reviewing this repository on GitHub, the best place to start is:
 1. `src/api/` for how data is fetched
 2. `src/views/` for the user-facing pages
 3. `src/components/` for reusable UI building blocks
+=======
+>>>>>>> 94089273db55dc35a615939b0bae22f799375e93
