@@ -34,6 +34,7 @@
           <p>The API base URL shown above is the one configured in the frontend environment.</p>
           <p>The storage and deployment values are read from the backend root endpoint.</p>
           <p>The property count is fetched from the live `/properties` endpoint, not hardcoded in the UI.</p>
+          <p v-if="apiStatus?.docs_url">Backend docs are expected at: <code>{{ apiBaseUrl }}{{ apiStatus.docs_url }}</code></p>
         </div>
       </section>
     </template>

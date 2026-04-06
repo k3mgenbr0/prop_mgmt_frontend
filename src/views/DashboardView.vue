@@ -85,6 +85,38 @@
           <section class="card">
             <div class="section-heading">
               <div>
+                <p class="eyebrow">Activity</p>
+                <h3>Recent portfolio activity</h3>
+              </div>
+            </div>
+
+            <EmptyState
+              v-if="recentActivity.length === 0"
+              title="No recent activity"
+              description="Income and expense responses were empty for the current portfolio snapshot."
+            />
+
+            <div v-else class="record-list">
+              <article v-for="item in recentActivity" :key="item.key" class="card record-card activity-card">
+                <div class="card-header">
+                  <div>
+                    <strong>{{ item.title }}</strong>
+                    <p class="muted">{{ item.propertyName }} · {{ item.description }}</p>
+                  </div>
+                  <div class="stack-sm activity-amount">
+                    <strong :class="item.type === 'income' ? 'amount-positive' : 'amount-negative'">
+                      {{ item.amount }}
+                    </strong>
+                    <span class="muted">{{ item.date }}</span>
+                  </div>
+                </div>
+              </article>
+            </div>
+          </section>
+
+          <section class="card">
+            <div class="section-heading">
+              <div>
                 <p class="eyebrow">Properties</p>
                 <h3>Live property feed</h3>
               </div>
@@ -181,6 +213,32 @@ const monthlyTrend = computed(() => {
     .slice(-8)
     .map(([, value]) => value)
 })
+
+const recentActivity = computed(() =>
+  snapshot.value.properties
+    .flatMap((property) => [
+      ...property.incomeRecords.map((record) => ({
+        key: `income-${property.property_id}-${record.income_id}`,
+        type: 'income',
+        title: 'Income received',
+        propertyName: property.name,
+        description: record.description || 'No description provided.',
+        amount: record.amount,
+        date: record.date
+      })),
+      ...property.expenseRecords.map((record) => ({
+        key: `expense-${property.property_id}-${record.expense_id}`,
+        type: 'expense',
+        title: record.category,
+        propertyName: property.name,
+        description: record.description || record.vendor || 'No description provided.',
+        amount: record.amount,
+        date: record.date
+      }))
+    ])
+    .sort((left, right) => right.date.localeCompare(left.date))
+    .slice(0, 6)
+)
 
 async function loadDashboard() {
   loading.value = true

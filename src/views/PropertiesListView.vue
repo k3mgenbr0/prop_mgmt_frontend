@@ -29,6 +29,42 @@
         <StatCard label="Monthly Rent Total" :value="formatCurrency(summary.estimatedMonthlyRentTotal)" />
       </div>
 
+      <section class="card filters-card">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Filters</p>
+            <h3>Refine portfolio results</h3>
+          </div>
+        </div>
+
+        <div class="filter-grid">
+          <label>
+            Search
+            <input v-model.trim="filters.search" placeholder="Name, city, tenant, type..." />
+          </label>
+
+          <label>
+            Occupancy
+            <select v-model="filters.occupancy">
+              <option value="">All properties</option>
+              <option value="occupied">Occupied</option>
+              <option value="vacant">Vacant</option>
+            </select>
+          </label>
+
+          <label>
+            Sort By
+            <select v-model="filters.sortBy">
+              <option value="name">Name</option>
+              <option value="rent-desc">Highest Rent</option>
+              <option value="rent-asc">Lowest Rent</option>
+              <option value="cashflow-desc">Highest Net Cash Flow</option>
+              <option value="cashflow-asc">Lowest Net Cash Flow</option>
+            </select>
+          </label>
+        </div>
+      </section>
+
       <ConnectionPanel
         :api-base-url="apiBaseUrl"
         :api-status="apiStatus"
@@ -42,9 +78,15 @@
         description="The API call completed successfully, but the backend returned no property records."
       />
 
+      <EmptyState
+        v-else-if="filteredProperties.length === 0"
+        title="No properties match these filters"
+        description="Try clearing one or more filters to show more properties from the live API."
+      />
+
       <div v-else class="property-grid">
         <PropertyOverviewCard
-          v-for="property in properties"
+          v-for="property in filteredProperties"
           :key="property.property_id"
           :property="property"
         />
@@ -54,7 +96,7 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { RouterLink } from 'vue-router'
 import { getPortfolioSnapshot } from '../api/dashboardService'
@@ -77,11 +119,56 @@ const lastRefreshed = ref('')
 const loading = ref(true)
 const errorMessage = ref('')
 const flashMessage = ref('')
+const filters = reactive({
+  search: '',
+  occupancy: '',
+  sortBy: 'name'
+})
 const summary = ref({
   totalProperties: 0,
   occupiedProperties: 0,
   vacantProperties: 0,
   estimatedMonthlyRentTotal: 0
+})
+
+const filteredProperties = computed(() => {
+  const query = filters.search.toLowerCase()
+
+  return [...properties.value]
+    .filter((property) => {
+      const matchesSearch =
+        !query ||
+        property.name.toLowerCase().includes(query) ||
+        property.city.toLowerCase().includes(query) ||
+        property.property_type.toLowerCase().includes(query) ||
+        (property.tenant_name || '').toLowerCase().includes(query)
+
+      const matchesOccupancy =
+        !filters.occupancy ||
+        (filters.occupancy === 'occupied' && property.occupied) ||
+        (filters.occupancy === 'vacant' && !property.occupied)
+
+      return matchesSearch && matchesOccupancy
+    })
+    .sort((left, right) => {
+      if (filters.sortBy === 'rent-desc') {
+        return right.monthlyRentValue - left.monthlyRentValue
+      }
+
+      if (filters.sortBy === 'rent-asc') {
+        return left.monthlyRentValue - right.monthlyRentValue
+      }
+
+      if (filters.sortBy === 'cashflow-desc') {
+        return right.netCashFlowValue - left.netCashFlowValue
+      }
+
+      if (filters.sortBy === 'cashflow-asc') {
+        return left.netCashFlowValue - right.netCashFlowValue
+      }
+
+      return left.name.localeCompare(right.name)
+    })
 })
 
 async function loadProperties() {

@@ -1,14 +1,17 @@
 :root {
   font-family: "Avenir Next", "Helvetica Neue", "Segoe UI", sans-serif;
   color: #1f2937;
-  --accent: #5a54f9;
-  --accent-deep: #4338ca;
-  --accent-soft: #eef2ff;
+  --accent: #0090c1;
+  --accent-deep: #046e8f;
+  --accent-soft: #dff5fb;
+  --navy-deep: #022f40;
+  --navy-soft: #183446;
+  --sky: #38aecc;
   --surface: rgba(255, 255, 255, 0.97);
   --border: rgba(15, 23, 42, 0.08);
   --muted: #6b7280;
   background:
-    radial-gradient(circle at top left, rgba(90, 84, 249, 0.09), transparent 30%),
+    radial-gradient(circle at top left, rgba(0, 144, 193, 0.1), transparent 30%),
     linear-gradient(180deg, #f7f8fc 0%, #eef2f7 100%);
   line-height: 1.5;
   font-weight: 500;
@@ -68,7 +71,7 @@ textarea {
 .sidebar {
   min-height: 100vh;
   padding: 1.5rem 1.15rem;
-  background: linear-gradient(180deg, #11263b 0%, #16324f 100%);
+  background: linear-gradient(180deg, var(--navy-deep) 0%, var(--navy-soft) 100%);
   color: #ffffff;
   border-right: 1px solid rgba(255, 255, 255, 0.08);
   position: sticky;
@@ -494,7 +497,7 @@ textarea {
 }
 
 .chart-line-secondary {
-  stroke: #a63d40;
+  stroke: var(--navy-soft);
 }
 
 .chart-point {
@@ -507,7 +510,7 @@ textarea {
 }
 
 .chart-point-secondary {
-  fill: #a63d40;
+  fill: var(--navy-soft);
 }
 
 .chart-label,
@@ -634,8 +637,8 @@ textarea {
 }
 
 .pill-type {
-  background: #eef2ff;
-  color: #5a54f9;
+  background: var(--accent-soft);
+  color: var(--accent-deep);
 }
 
 .property-actions {
@@ -647,13 +650,15 @@ textarea {
 }
 
 .button-income {
-  background: #31996d;
+  background: var(--sky);
   color: #ffffff;
+  box-shadow: 0 10px 22px rgba(56, 174, 204, 0.22);
 }
 
 .button-expense {
-  background: #e11d48;
+  background: var(--navy-soft);
   color: #ffffff;
+  box-shadow: 0 10px 22px rgba(24, 52, 70, 0.24);
 }
 
 .statement-card {
@@ -662,7 +667,7 @@ textarea {
 }
 
 .statement-card-net .statement-value {
-  color: #5a54f9;
+  color: var(--accent-deep);
 }
 
 .statement-label {
@@ -699,8 +704,8 @@ textarea {
 }
 
 .property-tab-active {
-  color: #5a54f9;
-  border-bottom-color: #5a54f9;
+  color: var(--accent-deep);
+  border-bottom-color: var(--accent-deep);
 }
 
 .tabbed-panel > .stack-lg {
@@ -728,12 +733,12 @@ textarea {
 }
 
 .amount-positive {
-  color: #31996d;
+  color: var(--accent-deep);
   font-weight: 700;
 }
 
 .amount-negative {
-  color: #e11d48;
+  color: var(--navy-soft);
   font-weight: 700;
 }
 
@@ -745,6 +750,14 @@ textarea {
   background: #f3f4f6;
   color: #4b5563;
   font-weight: 600;
+}
+
+.activity-card {
+  padding: 1rem 1.1rem;
+}
+
+.activity-amount {
+  align-items: flex-end;
 }
 
 @keyframes spin {

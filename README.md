@@ -121,6 +121,7 @@ The app makes the connection visible in the UI by showing:
 - API status panel
 - monthly income vs expense line chart
 - monthly rent by property bar chart
+- recent portfolio activity feed
 - property preview cards
 
 ### Properties
@@ -128,6 +129,7 @@ The app makes the connection visible in the UI by showing:
 - view all properties from the live API
 - occupancy and vacancy indicators
 - rent, income count, expense count, and net cash flow on property cards
+- filters for search, occupancy, and sorting
 - create property form
 - edit property form
 - delete property action with confirmation
@@ -160,6 +162,7 @@ The app makes the connection visible in the UI by showing:
 ### API Status
 
 - dedicated page showing live backend connectivity details
+- shows the expected backend docs URL when available
 
 ## Project Structure
 
