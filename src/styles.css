@@ -29,11 +29,13 @@ a {
 
 button,
 input,
+select,
 textarea {
   font: inherit;
 }
 
 input,
+select,
 textarea {
   width: 100%;
   margin-top: 0.45rem;
@@ -395,6 +397,17 @@ textarea {
   gap: 0.75rem;
 }
 
+.filters-card,
+.chart-card {
+  gap: 1rem;
+}
+
+.filter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+}
+
 .meta-grid,
 .mini-stats {
   display: grid;
@@ -436,6 +449,99 @@ textarea {
 
 .dashboard-grid {
   grid-template-columns: minmax(320px, 0.9fr) minmax(420px, 1.1fr);
+}
+
+.chart-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.chart-svg {
+  width: 100%;
+  height: auto;
+}
+
+.chart-axis {
+  stroke: #d7dee8;
+  stroke-width: 2;
+}
+
+.chart-bar {
+  fill: #3a7ca5;
+}
+
+.chart-line {
+  fill: none;
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.chart-line-primary {
+  stroke: #3a7ca5;
+}
+
+.chart-line-secondary {
+  stroke: #a63d40;
+}
+
+.chart-point {
+  stroke: #ffffff;
+  stroke-width: 2;
+}
+
+.chart-point-primary {
+  fill: #3a7ca5;
+}
+
+.chart-point-secondary {
+  fill: #a63d40;
+}
+
+.chart-label,
+.chart-value {
+  fill: #5b6b7c;
+  font-size: 11px;
+}
+
+.chart-value {
+  font-size: 10px;
+}
+
+.chart-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.chart-legend-row,
+.chart-key {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.chart-empty {
+  padding: 1rem 0;
+  color: #5b6b7c;
+}
+
+.swatch {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  margin-right: 0.4rem;
+}
+
+.swatch-primary {
+  background: #3a7ca5;
+}
+
+.swatch-secondary {
+  background: #a63d40;
 }
 
 @keyframes spin {

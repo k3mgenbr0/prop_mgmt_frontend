@@ -5,7 +5,7 @@
         <p class="eyebrow">Live Dashboard</p>
         <h2>Portfolio Snapshot</h2>
         <p class="muted">
-          Every widget on this page is derived from live property, income, and expense responses from your backend API.
+          Every widget and chart on this page is derived from live property, income, and expense responses from your backend API.
         </p>
       </div>
       <div class="card-actions">
@@ -63,38 +63,56 @@
               </div>
             </div>
           </section>
+
+          <SimpleLineChart
+            eyebrow="Cash Flow"
+            title="Monthly income vs expenses"
+            :points="monthlyTrend"
+            primary-label="Income"
+            secondary-label="Expenses"
+            :primary-formatter="formatCurrency"
+          />
         </div>
 
-        <section class="card">
-          <div class="section-heading">
-            <div>
-              <p class="eyebrow">Properties</p>
-              <h3>Live property feed</h3>
-            </div>
-            <RouterLink class="button button-secondary" to="/properties">Open full list</RouterLink>
-          </div>
-
-          <EmptyState
-            v-if="snapshot.properties.length === 0"
-            title="No properties returned by the API"
-            description="The frontend is connected, but the backend returned an empty property list."
+        <div class="stack-lg">
+          <SimpleBarChart
+            eyebrow="Rent Roll"
+            title="Monthly rent by property"
+            :items="propertyRentBars"
+            :value-formatter="formatCurrency"
           />
 
-          <div v-else class="record-list">
-            <PropertyOverviewCard
-              v-for="property in snapshot.properties.slice(0, 3)"
-              :key="property.property_id"
-              :property="property"
+          <section class="card">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Properties</p>
+                <h3>Live property feed</h3>
+              </div>
+              <RouterLink class="button button-secondary" to="/properties">Open full list</RouterLink>
+            </div>
+
+            <EmptyState
+              v-if="snapshot.properties.length === 0"
+              title="No properties returned by the API"
+              description="The frontend is connected, but the backend returned an empty property list."
             />
-          </div>
-        </section>
+
+            <div v-else class="record-list">
+              <PropertyOverviewCard
+                v-for="property in snapshot.properties.slice(0, 3)"
+                :key="property.property_id"
+                :property="property"
+              />
+            </div>
+          </section>
+        </div>
       </div>
     </template>
   </section>
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import { getPortfolioSnapshot } from '../api/dashboardService'
 import AlertMessage from '../components/AlertMessage.vue'
@@ -102,8 +120,10 @@ import ConnectionPanel from '../components/ConnectionPanel.vue'
 import EmptyState from '../components/EmptyState.vue'
 import LoadingState from '../components/LoadingState.vue'
 import PropertyOverviewCard from '../components/PropertyOverviewCard.vue'
+import SimpleBarChart from '../components/SimpleBarChart.vue'
+import SimpleLineChart from '../components/SimpleLineChart.vue'
 import StatCard from '../components/StatCard.vue'
-import { formatCurrency } from '../utils/formatters'
+import { formatCurrency, parseCurrencyString } from '../utils/formatters'
 
 const route = useRoute()
 const apiBaseUrl =
@@ -128,6 +148,38 @@ const snapshot = ref({
     netCashFlowAmount: 0
   },
   lastRefreshed: ''
+})
+
+const propertyRentBars = computed(() =>
+  snapshot.value.properties.map((property) => ({
+    label: property.name,
+    value: parseCurrencyString(property.monthly_rent)
+  }))
+)
+
+const monthlyTrend = computed(() => {
+  const buckets = new Map()
+
+  snapshot.value.properties.forEach((property) => {
+    property.incomeRecords.forEach((record) => {
+      const key = record.date.slice(0, 7)
+      const current = buckets.get(key) || { label: key.slice(5), primary: 0, secondary: 0 }
+      current.primary += parseCurrencyString(record.amount)
+      buckets.set(key, current)
+    })
+
+    property.expenseRecords.forEach((record) => {
+      const key = record.date.slice(0, 7)
+      const current = buckets.get(key) || { label: key.slice(5), primary: 0, secondary: 0 }
+      current.secondary += parseCurrencyString(record.amount)
+      buckets.set(key, current)
+    })
+  })
+
+  return [...buckets.entries()]
+    .sort(([left], [right]) => left.localeCompare(right))
+    .slice(-8)
+    .map(([, value]) => value)
 })
 
 async function loadDashboard() {
