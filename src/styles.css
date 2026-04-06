@@ -466,6 +466,11 @@ textarea {
   gap: 0.35rem;
 }
 
+.delta-card strong {
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
 .filters-card,
 .chart-card {
   gap: 1rem;

@@ -385,7 +385,7 @@ function computeDelta(currentRange, previousRange) {
 }
 
 function signedCurrency(value) {
-  const sign = value >= 0 ? '+' : '-'
+  const sign = value >= 0 ? '+ ' : '- '
   return `${sign}${formatCurrency(Math.abs(value))}`
 }
 
