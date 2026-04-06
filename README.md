@@ -16,10 +16,10 @@ npm install
 cp .env.example .env
 ```
 
-3. Set `VITE_API_BASE_URL` to your deployed backend URL, for example:
+3. Set `VITE_API_BASE_URL` to your deployed backend URL:
 
 ```env
-VITE_API_BASE_URL=https://your-live-api-url.run.app
+VITE_API_BASE_URL=https://prop-mgmt-api-129124698283.us-central1.run.app
 ```
 
 4. Start the dev server:
@@ -50,6 +50,13 @@ gcloud run deploy property-management-frontend \
   --platform managed \
   --region us-central1 \
   --allow-unauthenticated
+```
+
+Example with this backend:
+
+```bash
+docker build --build-arg VITE_API_BASE_URL=https://prop-mgmt-api-129124698283.us-central1.run.app \
+  -t gcr.io/YOUR_PROJECT_ID/property-management-frontend .
 ```
 
 Cloud Run serves the built frontend on port `8080`.
