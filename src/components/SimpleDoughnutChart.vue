@@ -31,7 +31,7 @@
 <script setup>
 import { computed } from 'vue'
 
-const colors = ['#5a54f9', '#3ba272', '#f59e0b', '#ef4444', '#8b5cf6', '#0ea5e9']
+const colors = ['#4338ca', '#4f46e5', '#6366f1', '#818cf8', '#a5b4fc', '#c7d2fe']
 
 const props = defineProps({
   eyebrow: {
