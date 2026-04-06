@@ -34,7 +34,7 @@ This repository contains the frontend for a Property Management application buil
 The frontend connects to an existing backend API and uses live data to power:
 - the dashboard summary cards
 - the property list
-- property detail pages
+- property detail pages with tabbed overview, income, and expense sections
 - income and expense activity views
 - API connection status panels
 - charts and filters
@@ -136,6 +136,9 @@ The app makes the connection visible in the UI by showing:
 ### Property Detail
 
 - view one property and its summary data
+- redesigned hero section with badges and primary actions
+- tabbed overview, income, and expenses workspace
+- property-level charts for income by year and expenses by category
 - view income records for that property
 - add new income records
 - view expense records for that property
@@ -517,7 +520,7 @@ If you want to make the repository more portfolio-ready, add screenshots such as
    Show multiple live property cards with occupancy badges and cash flow data.
 
 3. Property detail page
-   Show one property with income and expense sections.
+   Show one property with the redesigned hero header, stat cards, and tabbed sections.
 
 4. Income page with filters
    Show the filter controls and chart.

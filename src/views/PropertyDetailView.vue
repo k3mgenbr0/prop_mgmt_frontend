@@ -6,46 +6,106 @@
     <LoadingState v-if="loading" label="Loading property details..." />
 
     <template v-else-if="summary">
-      <div class="detail-hero card">
-        <div class="stack-sm">
-          <p class="eyebrow">Property Detail</p>
-          <h2>{{ summary.property.name }}</h2>
-          <p>{{ summary.property.address }}</p>
-          <p class="muted">
-            {{ summary.property.city }}, {{ summary.property.state }} {{ summary.property.postal_code }}
-          </p>
-          <p class="muted">
-            {{ summary.property.property_type }} · Tenant: {{ summary.property.tenant_name || 'Vacant / not listed' }}
-          </p>
+      <RouterLink class="back-link" to="/">&#60; Back to Dashboard</RouterLink>
+
+      <section class="property-spotlight">
+        <div class="property-identity">
+          <div class="property-thumb">
+            <span>{{ propertyInitials }}</span>
+          </div>
+
+          <div class="stack-sm">
+            <h2 class="detail-title">{{ summary.property.name }}</h2>
+            <p class="detail-address">
+              {{ summary.property.address }}, {{ summary.property.city }}, {{ summary.property.state }}
+              {{ summary.property.postal_code }}
+            </p>
+
+            <div class="detail-badges">
+              <span class="pill pill-type">{{ summary.property.property_type }}</span>
+              <span :class="['pill', summary.property.tenant_name ? 'pill-occupied' : 'pill-vacant']">
+                Tenant: {{ summary.property.tenant_name || 'Vacant' }}
+              </span>
+            </div>
+          </div>
         </div>
 
-        <div class="card-actions">
+        <div class="property-actions">
           <RouterLink class="button button-secondary" :to="`/properties/${props.id}/edit`">Edit</RouterLink>
-          <button class="button button-danger" :disabled="deleting" @click="handleDelete">
-            {{ deleting ? 'Deleting...' : 'Delete Property' }}
+          <button class="button button-secondary" :disabled="deleting" @click="handleDelete">
+            {{ deleting ? 'Deleting...' : 'Delete' }}
           </button>
+          <button class="button button-income" @click="openIncomeForm">+ Add Income</button>
+          <button class="button button-expense" @click="openExpenseForm">+ Add Expense</button>
         </div>
-      </div>
+      </section>
 
       <div class="stats-grid">
-        <StatCard label="Monthly Rent" :value="summary.property.monthly_rent" />
-        <StatCard label="Total Income" :value="summary.totals.total_income" />
-        <StatCard label="Total Expenses" :value="summary.totals.total_expenses" />
-        <StatCard label="Net Cash Flow" :value="summary.totals.net_cash_flow" />
+        <section class="card statement-card">
+          <p class="statement-label">Total Income</p>
+          <strong class="statement-value">{{ summary.totals.total_income }}</strong>
+        </section>
+        <section class="card statement-card">
+          <p class="statement-label">Total Expenses</p>
+          <strong class="statement-value">{{ summary.totals.total_expenses }}</strong>
+        </section>
+        <section class="card statement-card statement-card-net">
+          <p class="statement-label">Net Income</p>
+          <strong class="statement-value">{{ summary.totals.net_cash_flow }}</strong>
+        </section>
       </div>
 
-      <div class="detail-grid">
-        <section class="stack-md">
-          <div class="section-heading">
+      <section class="card tabbed-panel">
+        <div class="property-tabs">
+          <button :class="['property-tab', activeTab === 'overview' ? 'property-tab-active' : '']" @click="activeTab = 'overview'">
+            Overview
+          </button>
+          <button :class="['property-tab', activeTab === 'income' ? 'property-tab-active' : '']" @click="activeTab = 'income'">
+            Income
+          </button>
+          <button :class="['property-tab', activeTab === 'expenses' ? 'property-tab-active' : '']" @click="activeTab = 'expenses'">
+            Expenses
+          </button>
+        </div>
+
+        <div v-if="activeTab === 'overview'" class="stack-lg">
+          <div class="mini-stats mini-stats-wide">
             <div>
-              <h3>Income Records</h3>
-              <p class="muted">All income for this property, newest first.</p>
+              <span class="mini-label">Monthly Rent</span>
+              <strong>{{ summary.property.monthly_rent }}</strong>
+            </div>
+            <div>
+              <span class="mini-label">Income Records</span>
+              <strong>{{ incomeRecords.length }}</strong>
+            </div>
+            <div>
+              <span class="mini-label">Expense Records</span>
+              <strong>{{ expenseRecords.length }}</strong>
             </div>
           </div>
 
+          <div class="detail-grid">
+            <SimpleBarChart
+              eyebrow="Overview"
+              title="Income by year"
+              :items="incomeByYear"
+              :value-formatter="formatCurrency"
+            />
+            <SimpleDoughnutChart
+              eyebrow="Overview"
+              title="Expenses by category"
+              :items="expensesByCategory"
+              center-label="Expenses"
+              :value-formatter="formatCurrency"
+            />
+          </div>
+        </div>
+
+        <div v-else-if="activeTab === 'income'" class="stack-lg">
           <AlertMessage :message="incomeSuccess" variant="success" />
 
           <RecordForm
+            v-if="visibleForm === 'income'"
             type="income"
             :error-message="incomeError"
             :initial-values="incomeDefaults"
@@ -61,28 +121,29 @@
             description="Add the first rent or income payment for this property."
           />
 
-          <div v-else class="record-list">
-            <article v-for="income in incomeRecords" :key="income.income_id" class="card record-card">
-              <div class="card-header">
-                <strong>{{ income.amount }}</strong>
-                <span class="muted">{{ formatDate(income.date) }}</span>
-              </div>
-              <p class="muted">{{ income.description || 'No description provided.' }}</p>
-            </article>
-          </div>
-        </section>
+          <table v-else class="data-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Description</th>
+                <th>Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="income in incomeRecords" :key="income.income_id">
+                <td>{{ formatDate(income.date) }}</td>
+                <td>{{ income.description || 'No description provided.' }}</td>
+                <td class="amount-positive">{{ income.amount }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
 
-        <section class="stack-md">
-          <div class="section-heading">
-            <div>
-              <h3>Expense Records</h3>
-              <p class="muted">Track repairs, mortgage payments, utilities, and supplies.</p>
-            </div>
-          </div>
-
+        <div v-else class="stack-lg">
           <AlertMessage :message="expenseSuccess" variant="success" />
 
           <RecordForm
+            v-if="visibleForm === 'expense'"
             type="expense"
             :error-message="expenseError"
             :initial-values="expenseDefaults"
@@ -98,24 +159,34 @@
             description="Add the first expense so this property’s cash flow is complete."
           />
 
-          <div v-else class="record-list">
-            <article v-for="expense in expenseRecords" :key="expense.expense_id" class="card record-card">
-              <div class="card-header">
-                <strong>{{ expense.amount }}</strong>
-                <span class="muted">{{ formatDate(expense.date) }}</span>
-              </div>
-              <p>{{ expense.category }}<span v-if="expense.vendor"> · {{ expense.vendor }}</span></p>
-              <p class="muted">{{ expense.description || 'No description provided.' }}</p>
-            </article>
-          </div>
-        </section>
-      </div>
+          <table v-else class="data-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Category</th>
+                <th>Vendor</th>
+                <th>Description</th>
+                <th>Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="expense in expenseRecords" :key="expense.expense_id">
+                <td>{{ formatDate(expense.date) }}</td>
+                <td><span class="table-tag">{{ expense.category }}</span></td>
+                <td>{{ expense.vendor || 'No vendor listed' }}</td>
+                <td>{{ expense.description || 'No description provided.' }}</td>
+                <td class="amount-negative">{{ expense.amount }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
     </template>
   </section>
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import {
   createExpense,
@@ -126,12 +197,13 @@ import {
   getPropertyTotals,
   getPropertySummary
 } from '../api/propertyService'
-import { formatDate } from '../utils/formatters'
+import { formatCurrency, formatDate, parseCurrencyString } from '../utils/formatters'
 import AlertMessage from '../components/AlertMessage.vue'
 import EmptyState from '../components/EmptyState.vue'
 import LoadingState from '../components/LoadingState.vue'
 import RecordForm from '../components/RecordForm.vue'
-import StatCard from '../components/StatCard.vue'
+import SimpleBarChart from '../components/SimpleBarChart.vue'
+import SimpleDoughnutChart from '../components/SimpleDoughnutChart.vue'
 
 const props = defineProps({
   id: {
@@ -153,6 +225,8 @@ const loadingExpenses = ref(true)
 const deleting = ref(false)
 const savingIncome = ref(false)
 const savingExpense = ref(false)
+const activeTab = ref('overview')
+const visibleForm = ref('')
 
 const pageError = ref('')
 const flashMessage = ref('')
@@ -167,6 +241,40 @@ const incomeDefaults = ref({
 
 const expenseDefaults = ref({
   date: new Date().toISOString().slice(0, 10)
+})
+
+const propertyInitials = computed(() =>
+  summary.value?.property.name
+    ?.split(' ')
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join('')
+    .toUpperCase() || 'PM'
+)
+
+const incomeByYear = computed(() => {
+  const buckets = new Map()
+
+  incomeRecords.value.forEach((record) => {
+    const year = record.date.slice(0, 4)
+    buckets.set(year, (buckets.get(year) || 0) + parseCurrencyString(record.amount))
+  })
+
+  return [...buckets.entries()]
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([label, value]) => ({ label, value }))
+})
+
+const expensesByCategory = computed(() => {
+  const buckets = new Map()
+
+  expenseRecords.value.forEach((record) => {
+    buckets.set(record.category, (buckets.get(record.category) || 0) + parseCurrencyString(record.amount))
+  })
+
+  return [...buckets.entries()]
+    .sort((left, right) => right[1] - left[1])
+    .map(([label, value]) => ({ label, value }))
 })
 
 async function loadSummary() {
@@ -208,6 +316,16 @@ async function loadExpenses() {
   }
 }
 
+function openIncomeForm() {
+  activeTab.value = 'income'
+  visibleForm.value = visibleForm.value === 'income' ? '' : 'income'
+}
+
+function openExpenseForm() {
+  activeTab.value = 'expenses'
+  visibleForm.value = visibleForm.value === 'expense' ? '' : 'expense'
+}
+
 async function handleIncomeSubmit(payload) {
   savingIncome.value = true
   incomeError.value = ''
@@ -218,6 +336,7 @@ async function handleIncomeSubmit(payload) {
     incomeSuccess.value = 'Income record added successfully.'
     incomeDefaults.value = { date: payload.date }
     summary.value.totals = await getPropertyTotals(props.id)
+    visibleForm.value = ''
     await loadIncome()
   } catch (error) {
     incomeError.value = error.message
@@ -236,6 +355,7 @@ async function handleExpenseSubmit(payload) {
     expenseSuccess.value = 'Expense record added successfully.'
     expenseDefaults.value = { date: payload.date }
     summary.value.totals = await getPropertyTotals(props.id)
+    visibleForm.value = ''
     await loadExpenses()
   } catch (error) {
     expenseError.value = error.message
