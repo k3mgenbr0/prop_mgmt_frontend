@@ -25,8 +25,7 @@ The app uses a clean card-based dashboard layout, sidebar navigation, live summa
 - [How to Use the App](#how-to-use-the-app)
 - [Deployment Notes](#deployment-notes)
 - [Troubleshooting](#troubleshooting)
-- [Suggested Screenshots for GitHub](#suggested-screenshots)
-
+  
 ## Overview
 
 This repository contains the frontend for a Property Management application built with Vue 3 and Vite.
