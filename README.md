@@ -613,36 +613,6 @@ That means:
 - clearing browser storage will remove them
 <<<<<<< HEAD
 
-## Suggested Screenshots for GitHub
-
-If you want to make the repository more portfolio-ready, add screenshots such as:
-
-1. Dashboard overview
-   Show the sidebar, summary cards, API connection panel, and charts.
-
-2. Properties page
-   Show multiple live property cards with occupancy badges and cash flow data.
-
-3. Property detail page
-   Show one property with the redesigned hero header, stat cards, and tabbed sections.
-
-4. Income page with filters
-   Show the filter controls and chart.
-
-5. Expenses page with filters
-   Show the filter controls and category chart.
-
-6. API status page
-   Show the backend URL and successful connection information.
-
-Suggested Markdown after adding screenshots to a `docs/` or `screenshots/` folder:
-
-```md
-![Dashboard](./screenshots/dashboard.png)
-![Properties](./screenshots/properties.png)
-![Property Detail](./screenshots/property-detail.png)
-```
-
 ## Portfolio Notes
 
 This project demonstrates:
