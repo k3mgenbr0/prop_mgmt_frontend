@@ -12,12 +12,12 @@
           </p>
         </div>
         <nav class="topnav">
-          <button class="button button-theme" @click="toggleTheme">
-            {{ isDark ? 'Light Mode' : 'Dark Mode' }}
-          </button>
           <RouterLink to="/">Dashboard</RouterLink>
           <RouterLink to="/properties">Properties</RouterLink>
           <RouterLink to="/properties/new">Add Property</RouterLink>
+          <button class="button button-theme" @click="toggleTheme">
+            {{ isDark ? 'Light Mode' : 'Dark Mode' }}
+          </button>
         </nav>
       </header>
 
