@@ -13,6 +13,9 @@
         <button class="button button-secondary" :disabled="filteredIncomeRows.length === 0" @click="exportIncome">
           Export CSV
         </button>
+        <button class="button button-secondary" :disabled="loading" @click="saveCurrentView">
+          Save View
+        </button>
       </div>
     </div>
 
@@ -65,6 +68,28 @@
             Search Description
             <input v-model.trim="filters.search" placeholder="Rent, back payment, April..." />
           </label>
+        </div>
+
+        <div v-if="savedViews.length" class="saved-views">
+          <strong>Saved views</strong>
+          <div class="saved-view-list">
+            <button
+              v-for="view in savedViews"
+              :key="view.id"
+              class="button button-secondary saved-view-button"
+              @click="applySavedView(view)"
+            >
+              {{ view.name }}
+            </button>
+            <button
+              v-for="view in savedViews"
+              :key="`${view.id}-remove`"
+              class="button button-danger saved-view-delete"
+              @click="deleteSavedView(view.id)"
+            >
+              Remove {{ view.name }}
+            </button>
+          </div>
         </div>
       </section>
 
@@ -129,10 +154,13 @@ import { downloadCsv } from '../utils/exporters'
 import { formatCurrency, formatDate, inDateRange, parseCurrencyString } from '../utils/formatters'
 import { pushToast } from '../utils/toasts'
 
+const SAVED_VIEWS_KEY = 'income-filter-views'
+
 const route = useRoute()
 const router = useRouter()
 const loading = ref(true)
 const errorMessage = ref('')
+const savedViews = ref(readSavedViews())
 const snapshot = ref({ properties: [], summary: { totalProperties: 0, totalIncomeRecords: 0, totalIncomeAmount: 0 } })
 const filters = useQueryFilters(route, router, {
   property: '',
@@ -239,6 +267,56 @@ function exportIncome() {
     message: 'The filtered income records were downloaded as CSV.',
     variant: 'success'
   })
+}
+
+function saveCurrentView() {
+  const name = buildViewName()
+  savedViews.value = [
+    {
+      id: crypto.randomUUID(),
+      name,
+      filters: { ...filters }
+    },
+    ...savedViews.value
+  ].slice(0, 6)
+
+  persistSavedViews()
+  pushToast({
+    title: 'View saved',
+    message: `Saved "${name}" for quick income filtering.`,
+    variant: 'success'
+  })
+}
+
+function applySavedView(view) {
+  Object.assign(filters, view.filters)
+  pushToast({
+    title: 'View applied',
+    message: `Applied "${view.name}".`,
+    variant: 'info'
+  })
+}
+
+function deleteSavedView(viewId) {
+  savedViews.value = savedViews.value.filter((view) => view.id !== viewId)
+  persistSavedViews()
+}
+
+function buildViewName() {
+  const parts = [filters.property, filters.year, filters.search ? 'Search' : ''].filter(Boolean)
+  return parts.join(' · ') || 'Saved income view'
+}
+
+function persistSavedViews() {
+  window.localStorage.setItem(SAVED_VIEWS_KEY, JSON.stringify(savedViews.value))
+}
+
+function readSavedViews() {
+  try {
+    return JSON.parse(window.localStorage.getItem(SAVED_VIEWS_KEY) || '[]')
+  } catch {
+    return []
+  }
 }
 
 onMounted(loadIncomeOverview)

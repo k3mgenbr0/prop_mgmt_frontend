@@ -8,7 +8,7 @@ This frontend is designed for a landlord or property owner who wants to:
 - review income and expenses tied to each property
 - confirm that the UI is connected to a real backend and real database-backed data
 
-The app uses a clean card-based dashboard layout, sidebar navigation, live summary widgets, filters, and lightweight charts derived from API responses. It also includes URL-persisted filters, CSV export, browser-saved property notes, toast feedback, rent-status intelligence, payment-gap alerts, profitability ranking, timeline views, and a persistent light/dark mode toggle.
+The app uses a clean card-based dashboard layout, sidebar navigation, live summary widgets, filters, and lightweight charts derived from API responses. It also includes URL-persisted filters, saved views, CSV export, browser-saved property notes, toast feedback, rent-status intelligence, payment-gap alerts, profitability ranking, timeline views, advanced property comparison, printable reporting views, and persistent accessibility controls including light/dark mode.
 
 ## Table of Contents
 
@@ -78,6 +78,8 @@ At a high level:
    - income and expense trends
    - previous-period KPI changes
    - upcoming rent gap calculations
+   - property comparison metrics
+   - saved filter views and accessibility preferences stored locally
 
 ## Frontend and Backend Integration
 
@@ -141,8 +143,11 @@ The app makes the connection visible in the UI by showing:
 - monthly rent-status indicator on each property card
 - current-month collected amount and rent-gap amount on cards
 - rent, income count, expense count, and net cash flow on property cards
-- filters for search, occupancy, and sorting
+- filters for search, occupancy, city, property type, rent status, and sorting
 - filter state saved in the URL
+- saved property filter views stored in browser local storage
+- keyboard shortcut support for focusing property search
+- compare up to 3 properties side by side
 - CSV export for the filtered property list
 - create property form
 - edit property form
@@ -167,6 +172,7 @@ The app makes the connection visible in the UI by showing:
 - portfolio-wide income activity view
 - filters by property, year, date range, and text search
 - URL-persisted filters
+- saved analytical views stored in browser local storage
 - CSV export for the filtered table
 - monthly income trend chart
 - income by property chart
@@ -176,10 +182,19 @@ The app makes the connection visible in the UI by showing:
 - portfolio-wide expense activity view
 - filters by property, category, year, date range, and text search
 - URL-persisted filters
+- saved analytical views stored in browser local storage
 - CSV export for the filtered table
 - monthly expense trend chart
 - expenses by category chart
 - clicking chart categories can drive filtering
+
+### Reports
+
+- dedicated reports page built from the live portfolio snapshot
+- executive summary cards for occupancy, paid/late properties, and portfolio cash flow
+- top-performer and rent-gap ranking sections
+- printable property-by-property summary table
+- CSV export and print-friendly styling
 
 ### API Status
 
@@ -192,6 +207,14 @@ The app makes the connection visible in the UI by showing:
 - theme preference is saved in browser local storage
 - the app respects system dark-mode preference on first load
 
+### Accessibility
+
+- larger text mode
+- reduced-motion mode
+- high-contrast mode
+- skip-to-content link for keyboard users
+- toast announcements exposed through an `aria-live` region
+
 ## Project Structure
 
 This is the current folder structure relevant to the app:
@@ -199,6 +222,7 @@ This is the current folder structure relevant to the app:
 ```text
 src/
   composables/
+    useAccessibility.js
     useQueryFilters.js
     useTheme.js
   api/
@@ -236,6 +260,7 @@ src/
     PropertyCreateView.vue
     PropertyDetailView.vue
     PropertyEditView.vue
+    ReportsView.vue
   App.vue
   main.js
   styles.css
@@ -374,7 +399,8 @@ This page shows:
 - monthly rent
 - income and expense record counts
 - net cash flow
-- URL-backed filters for search, occupancy, and sorting
+- URL-backed filters for search, occupancy, city, property type, rent status, and sorting
+- saved property views and side-by-side comparison
 - CSV export for the currently filtered list
 
 ### 4. Add a property
@@ -414,6 +440,7 @@ You can:
 - filter by year
 - filter by start and end date
 - search descriptions
+- save reusable income filter views
 - export the filtered rows to CSV
 - view live charts based on the filtered data
 
@@ -428,10 +455,20 @@ You can:
 - filter by year
 - filter by start and end date
 - search vendors or descriptions
+- save reusable expense filter views
 - export the filtered rows to CSV
 - view charts based on the filtered data
 
-### 9. Use the API Status page
+### 9. Open Reports
+
+Open **Reports** in the sidebar.
+
+You can:
+- review a printable executive summary
+- see top-performing properties and current rent-gap leaders
+- print the report or export a property summary CSV
+
+### 10. Use the API Status page
 
 Open **API Status** to validate frontend/backend integration.
 

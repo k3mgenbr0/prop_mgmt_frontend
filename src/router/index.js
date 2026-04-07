@@ -7,6 +7,7 @@ import PropertiesListView from '../views/PropertiesListView.vue'
 import PropertyCreateView from '../views/PropertyCreateView.vue'
 import PropertyEditView from '../views/PropertyEditView.vue'
 import PropertyDetailView from '../views/PropertyDetailView.vue'
+import ReportsView from '../views/ReportsView.vue'
 
 const routes = [
   { path: '/', name: 'dashboard', component: DashboardView },
@@ -16,6 +17,7 @@ const routes = [
   { path: '/properties/:id', name: 'property-detail', component: PropertyDetailView, props: true },
   { path: '/income', name: 'income-overview', component: IncomeOverviewView },
   { path: '/expenses', name: 'expenses-overview', component: ExpensesOverviewView },
+  { path: '/reports', name: 'reports', component: ReportsView },
   { path: '/api-status', name: 'api-status', component: ApiStatusView }
 ]
 

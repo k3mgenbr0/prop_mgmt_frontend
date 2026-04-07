@@ -1,5 +1,6 @@
 <template>
   <div class="app-shell">
+    <a class="skip-link" href="#main-content">Skip to main content</a>
     <SidebarNav />
 
     <div class="app-main">
@@ -14,6 +15,7 @@
         <nav class="topnav">
           <RouterLink to="/">Dashboard</RouterLink>
           <RouterLink to="/properties">Properties</RouterLink>
+          <RouterLink to="/reports">Reports</RouterLink>
           <RouterLink to="/properties/new">Add Property</RouterLink>
           <button class="button button-theme" @click="toggleTheme">
             {{ isDark ? 'Light Mode' : 'Dark Mode' }}
@@ -21,7 +23,7 @@
         </nav>
       </header>
 
-      <main class="page-shell">
+      <main id="main-content" class="page-shell" tabindex="-1">
         <RouterView />
       </main>
     </div>

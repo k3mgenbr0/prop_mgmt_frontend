@@ -1,6 +1,11 @@
 <template>
-  <div class="toast-stack">
-    <article v-for="toast in toasts" :key="toast.id" :class="['toast-card', `toast-${toast.variant}`]">
+  <div class="toast-stack" aria-live="polite" aria-atomic="true">
+    <article
+      v-for="toast in toasts"
+      :key="toast.id"
+      :class="['toast-card', `toast-${toast.variant}`]"
+      role="status"
+    >
       <strong>{{ toast.title }}</strong>
       <p>{{ toast.message }}</p>
     </article>

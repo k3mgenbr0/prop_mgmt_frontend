@@ -51,6 +51,12 @@
     </div>
 
     <div class="card-actions">
+      <button
+        :class="['button', selected ? 'button-primary' : 'button-secondary']"
+        @click="$emit('toggle-compare', property.property_id)"
+      >
+        {{ selected ? 'Remove Compare' : 'Compare' }}
+      </button>
       <RouterLink class="button button-secondary" :to="`/properties/${property.property_id}`">
         View Details
       </RouterLink>
@@ -65,10 +71,16 @@
 import { RouterLink } from 'vue-router'
 import { formatCurrency } from '../utils/formatters'
 
+defineEmits(['toggle-compare'])
+
 defineProps({
   property: {
     type: Object,
     required: true
+  },
+  selected: {
+    type: Boolean,
+    default: false
   }
 })
 
