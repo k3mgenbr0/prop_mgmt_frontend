@@ -1,18 +1,34 @@
 :root {
   font-family: "Avenir Next", "Helvetica Neue", "Segoe UI", sans-serif;
-  color: #1f2937;
   --accent: #0090c1;
   --accent-deep: #046e8f;
   --accent-soft: #dff5fb;
   --navy-deep: #022f40;
   --navy-soft: #183446;
   --sky: #38aecc;
+  --text: #1f2937;
+  --text-soft: #667085;
   --surface: rgba(255, 255, 255, 0.97);
+  --surface-alt: #ffffff;
+  --surface-muted: rgba(255, 255, 255, 0.75);
   --border: rgba(15, 23, 42, 0.08);
   --muted: #6b7280;
-  background:
+  --bg-gradient:
     radial-gradient(circle at top left, rgba(0, 144, 193, 0.1), transparent 30%),
     linear-gradient(180deg, #f7f8fc 0%, #eef2f7 100%);
+  --success-bg: #eaf9ef;
+  --success-text: #1f6b36;
+  --warning-bg: #fff2dd;
+  --warning-text: #9a5b00;
+  --danger-bg: #fceeed;
+  --danger-text: #8b2e28;
+  --table-head: #7b8598;
+  --shadow-card: 0 10px 28px rgba(31, 41, 55, 0.07);
+  --shadow-button: 0 10px 20px rgba(31, 41, 55, 0.08);
+  --shadow-toast: 0 14px 30px rgba(31, 41, 55, 0.12);
+  color: var(--text);
+  background:
+    var(--bg-gradient);
   line-height: 1.5;
   font-weight: 500;
   color-scheme: light;
@@ -22,6 +38,30 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+[data-theme="dark"] {
+  --text: #e2ebf5;
+  --text-soft: #c5d1de;
+  --surface: rgba(17, 39, 54, 0.96);
+  --surface-alt: #16374c;
+  --surface-muted: rgba(13, 31, 44, 0.75);
+  --border: rgba(148, 182, 204, 0.2);
+  --muted: #9fb2c3;
+  --bg-gradient:
+    radial-gradient(circle at top left, rgba(56, 174, 204, 0.2), transparent 32%),
+    linear-gradient(180deg, #081c2a 0%, #0f2b3d 100%);
+  --success-bg: rgba(26, 66, 51, 0.55);
+  --success-text: #8be0ac;
+  --warning-bg: rgba(89, 66, 26, 0.45);
+  --warning-text: #ffcf7d;
+  --danger-bg: rgba(89, 35, 34, 0.5);
+  --danger-text: #ffaaa4;
+  --table-head: #b6cad8;
+  --shadow-card: 0 14px 36px rgba(2, 14, 21, 0.45);
+  --shadow-button: 0 10px 20px rgba(2, 14, 21, 0.45);
+  --shadow-toast: 0 14px 30px rgba(2, 14, 21, 0.5);
+  color-scheme: dark;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -29,6 +69,8 @@
 body {
   margin: 0;
   min-height: 100vh;
+  color: var(--text);
+  background: var(--bg-gradient);
 }
 
 a {
@@ -48,10 +90,11 @@ select,
 textarea {
   width: 100%;
   margin-top: 0.45rem;
-  border: 1px solid #cfd8e3;
+  border: 1px solid var(--border);
   border-radius: 12px;
   padding: 0.8rem 0.9rem;
-  background: #ffffff;
+  background: var(--surface-alt);
+  color: var(--text);
 }
 
 textarea {
@@ -84,8 +127,8 @@ textarea {
   padding: 0.95rem 1rem;
   border-radius: 18px;
   border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.98);
-  box-shadow: 0 14px 30px rgba(31, 41, 55, 0.12);
+  background: var(--surface);
+  box-shadow: var(--shadow-toast);
 }
 
 .toast-card p,
@@ -150,7 +193,7 @@ textarea {
 
 .sidebar-link-subtitle {
   font-size: 0.88rem;
-  color: rgba(255, 255, 255, 0.68);
+  color: rgba(230, 246, 255, 0.72);
 }
 
 .topbar {
@@ -160,7 +203,7 @@ textarea {
   gap: 1rem;
   padding: 1.5rem 2rem;
   border-bottom: 1px solid rgba(15, 23, 42, 0.08);
-  background: rgba(255, 255, 255, 0.82);
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
   backdrop-filter: blur(14px);
   position: sticky;
   top: 0;
@@ -189,8 +232,8 @@ textarea {
 .topnav a {
   padding: 0.7rem 1rem;
   border-radius: 999px;
-  background: #ffffff;
-  border: 1px solid #d7dee8;
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
 }
 
 .topnav a.router-link-exact-active {
@@ -210,7 +253,7 @@ textarea {
   border: 1px solid var(--border);
   border-radius: 26px;
   padding: 1.3rem;
-  box-shadow: 0 10px 28px rgba(31, 41, 55, 0.07);
+  box-shadow: var(--shadow-card);
 }
 
 .hero,
@@ -280,7 +323,7 @@ textarea {
 
 .button:hover {
   transform: translateY(-1px);
-  box-shadow: 0 10px 20px rgba(31, 41, 55, 0.08);
+  box-shadow: var(--shadow-button);
 }
 
 .button:disabled {
@@ -294,15 +337,20 @@ textarea {
 }
 
 .button-secondary {
-  background: #ffffff;
-  color: #667085;
-  border: 1px solid #dbe1ea;
+  background: var(--surface-alt);
+  color: var(--text-soft);
+  border: 1px solid var(--border);
 }
 
 .button-danger {
-  background: #ffffff;
-  color: #94a3b8;
-  border: 1px solid #dbe1ea;
+  background: var(--surface-alt);
+  color: var(--text-soft);
+  border: 1px solid var(--border);
+}
+
+.button-theme {
+  background: var(--navy-soft);
+  color: #ffffff;
 }
 
 .form-card,
@@ -353,19 +401,19 @@ textarea {
   align-items: center;
   padding: 0.45rem 0.8rem;
   border-radius: 999px;
-  background: #f4f6fb;
-  color: #4b5563;
+  background: color-mix(in srgb, var(--surface-alt) 80%, var(--accent-soft) 20%);
+  color: var(--text-soft);
   font-weight: 600;
 }
 
 .pill-occupied {
-  background: #eaf9ef;
-  color: #1f6b36;
+  background: var(--success-bg);
+  color: var(--success-text);
 }
 
 .pill-vacant {
-  background: #fff2dd;
-  color: #9a5b00;
+  background: var(--warning-bg);
+  color: var(--warning-text);
 }
 
 .status-badge {
@@ -378,13 +426,13 @@ textarea {
 }
 
 .status-online {
-  background: #eaf9ef;
-  color: #1f6b36;
+  background: var(--success-bg);
+  color: var(--success-text);
 }
 
 .status-offline {
-  background: #fceeed;
-  color: #8b2e28;
+  background: var(--danger-bg);
+  color: var(--danger-text);
 }
 
 .alert {
@@ -395,15 +443,15 @@ textarea {
 }
 
 .alert-success {
-  background: #eaf9ef;
+  background: var(--success-bg);
   border-color: #9ed7ad;
-  color: #1f6b36;
+  color: var(--success-text);
 }
 
 .alert-error {
-  background: #fceeed;
+  background: var(--danger-bg);
   border-color: #e1aaa5;
-  color: #8b2e28;
+  color: var(--danger-text);
 }
 
 .alert-info {
@@ -420,8 +468,8 @@ textarea {
 
 .empty-state {
   padding: 3rem 1.25rem;
-  background: rgba(255, 255, 255, 0.75);
-  border: 1px dashed #c7d4e2;
+  background: var(--surface-muted);
+  border: 1px dashed var(--border);
   border-radius: 24px;
 }
 
@@ -541,7 +589,7 @@ textarea {
 }
 
 .chart-axis {
-  stroke: #d7dee8;
+  stroke: color-mix(in srgb, var(--border) 90%, transparent);
   stroke-width: 2;
 }
 
@@ -603,7 +651,7 @@ textarea {
 
 .chart-empty {
   padding: 1rem 0;
-  color: #5b6b7c;
+  color: var(--muted);
 }
 
 .doughnut-layout {
@@ -626,7 +674,7 @@ textarea {
   width: 120px;
   height: 120px;
   border-radius: 50%;
-  background: #ffffff;
+  background: var(--surface-alt);
   display: grid;
   place-items: center;
   color: #5a54f9;
@@ -652,7 +700,7 @@ textarea {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  color: #6b7280;
+  color: var(--muted);
   font-weight: 600;
 }
 
@@ -673,8 +721,8 @@ textarea {
   width: 96px;
   height: 96px;
   border-radius: 22px;
-  background: linear-gradient(135deg, #dbeafe 0%, #eef2ff 100%);
-  border: 1px solid rgba(90, 84, 249, 0.12);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--sky) 20%, var(--surface-alt)) 0%, color-mix(in srgb, var(--accent) 12%, var(--surface-alt)) 100%);
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
   display: grid;
   place-items: center;
   font-size: 1.65rem;
@@ -690,7 +738,7 @@ textarea {
 
 .detail-address {
   margin: 0;
-  color: #6b7280;
+  color: var(--muted);
   font-size: 1.1rem;
 }
 
@@ -736,7 +784,7 @@ textarea {
 
 .statement-label {
   margin: 0 0 0.75rem;
-  color: #7b8598;
+  color: var(--table-head);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   font-weight: 700;
@@ -763,7 +811,7 @@ textarea {
   border: none;
   border-bottom: 4px solid transparent;
   font-weight: 700;
-  color: #6b7280;
+  color: var(--muted);
   cursor: pointer;
 }
 
@@ -790,7 +838,7 @@ textarea {
 }
 
 .data-table th {
-  color: #7b8598;
+  color: var(--table-head);
   text-transform: uppercase;
   letter-spacing: 0.04em;
   font-size: 0.82rem;
@@ -811,9 +859,31 @@ textarea {
   align-items: center;
   padding: 0.3rem 0.7rem;
   border-radius: 999px;
-  background: #f3f4f6;
-  color: #4b5563;
+  background: color-mix(in srgb, var(--surface-alt) 80%, var(--accent-soft) 20%);
+  color: var(--text-soft);
   font-weight: 600;
+}
+
+.rent-status {
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-size: 0.88rem;
+}
+
+.rent-status-paid {
+  color: var(--success-text);
+}
+
+.rent-status-partial {
+  color: var(--warning-text);
+}
+
+.rent-status-late {
+  color: var(--danger-text);
+}
+
+.rent-status-vacant {
+  color: var(--muted);
 }
 
 .activity-card {

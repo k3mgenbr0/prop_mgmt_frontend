@@ -12,6 +12,9 @@
           </p>
         </div>
         <nav class="topnav">
+          <button class="button button-theme" @click="toggleTheme">
+            {{ isDark ? 'Light Mode' : 'Dark Mode' }}
+          </button>
           <RouterLink to="/">Dashboard</RouterLink>
           <RouterLink to="/properties">Properties</RouterLink>
           <RouterLink to="/properties/new">Add Property</RouterLink>
@@ -30,5 +33,8 @@
 <script setup>
 import { RouterLink, RouterView } from 'vue-router'
 import SidebarNav from './components/SidebarNav.vue'
+import { useTheme } from './composables/useTheme'
 import ToastStack from './components/ToastStack.vue'
+
+const { isDark, toggleTheme } = useTheme()
 </script>

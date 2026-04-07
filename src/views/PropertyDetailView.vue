@@ -118,6 +118,38 @@
               :value-formatter="formatCurrency"
             />
           </div>
+
+          <section class="card">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Timeline</p>
+                <h3>Property activity timeline</h3>
+              </div>
+            </div>
+
+            <EmptyState
+              v-if="activityTimeline.length === 0"
+              title="No activity yet"
+              description="Income and expense activity will appear here in chronological order."
+            />
+
+            <div v-else class="record-list">
+              <article v-for="item in activityTimeline" :key="item.key" class="card record-card activity-card">
+                <div class="card-header">
+                  <div>
+                    <strong>{{ item.title }}</strong>
+                    <p class="muted">{{ item.description }}</p>
+                  </div>
+                  <div class="stack-sm activity-amount">
+                    <strong :class="item.type === 'income' ? 'amount-positive' : 'amount-negative'">
+                      {{ item.displayAmount }}
+                    </strong>
+                    <span class="muted">{{ formatDate(item.date) }}</span>
+                  </div>
+                </div>
+              </article>
+            </div>
+          </section>
         </div>
 
         <div v-else-if="activeTab === 'income'" class="stack-lg">
@@ -312,6 +344,29 @@ const expensesByCategory = computed(() => {
     .sort((left, right) => right[1] - left[1])
     .map(([label, value]) => ({ label, value }))
 })
+
+const activityTimeline = computed(() =>
+  [
+    ...incomeRecords.value.map((record) => ({
+      key: `income-${record.income_id}`,
+      type: 'income',
+      title: 'Income received',
+      description: record.description || 'No description provided.',
+      displayAmount: `+ ${record.amount}`,
+      date: record.date
+    })),
+    ...expenseRecords.value.map((record) => ({
+      key: `expense-${record.expense_id}`,
+      type: 'expense',
+      title: record.category,
+      description: record.description || record.vendor || 'No description provided.',
+      displayAmount: `- ${record.amount}`,
+      date: record.date
+    }))
+  ]
+    .sort((left, right) => right.date.localeCompare(left.date))
+    .slice(0, 14)
+)
 
 async function loadSummary() {
   loading.value = true

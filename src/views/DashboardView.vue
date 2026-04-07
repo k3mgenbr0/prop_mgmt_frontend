@@ -5,7 +5,7 @@
         <p class="eyebrow">Live Dashboard</p>
         <h2>Portfolio Snapshot</h2>
         <p class="muted">
-          Every widget and chart on this page is derived from live property, income, and expense responses from your backend API.
+          Every widget, alert, rank, and timeline entry is derived from live property, income, and expense responses.
         </p>
       </div>
       <div class="card-actions">
@@ -46,7 +46,7 @@
       </div>
     </section>
 
-    <LoadingSkeleton v-if="loading" :count="6" />
+    <LoadingSkeleton v-if="loading" :count="8" />
 
     <template v-else>
       <div class="stats-grid">
@@ -54,6 +54,8 @@
         <StatCard label="Occupied" :value="String(snapshot.summary.occupiedProperties)" />
         <StatCard label="Vacant" :value="String(snapshot.summary.vacantProperties)" />
         <StatCard label="Expected Monthly Rent" :value="formatCurrency(snapshot.summary.estimatedMonthlyRentTotal)" />
+        <StatCard label="Rent Paid" :value="String(snapshot.summary.paidPropertyCount)" />
+        <StatCard label="Partial / Late" :value="`${snapshot.summary.partialPropertyCount} / ${snapshot.summary.latePropertyCount}`" />
         <StatCard label="Income In Range" :value="formatCurrency(filteredSummary.incomeTotal)" />
         <StatCard label="Expenses In Range" :value="formatCurrency(filteredSummary.expenseTotal)" />
       </div>
@@ -101,8 +103,42 @@
               </div>
               <div>
                 <span class="mini-label">Remaining gap</span>
-                <strong>{{ formatCurrency(upcomingRent.remaining) }}</strong>
+                <strong :class="upcomingRent.remaining > 0 ? 'amount-negative' : 'amount-positive'">
+                  {{ formatCurrency(upcomingRent.remaining) }}
+                </strong>
               </div>
+            </div>
+          </section>
+
+          <section class="card">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Alerts</p>
+                <h3>Payment gap alerts</h3>
+              </div>
+            </div>
+
+            <EmptyState
+              v-if="paymentGapAlerts.length === 0"
+              title="No payment gaps this month"
+              description="All occupied properties are fully paid for the current month."
+            />
+
+            <div v-else class="record-list">
+              <article v-for="alert in paymentGapAlerts" :key="alert.property_id" class="card record-card">
+                <div class="card-header">
+                  <div>
+                    <strong>{{ alert.name }}</strong>
+                    <p class="muted">
+                      {{ alert.tenant_name || 'No tenant on file' }} · {{ getRentStatusLabel(alert.rentStatus) }}
+                    </p>
+                  </div>
+                  <strong class="amount-negative">{{ formatCurrency(alert.paymentGapValue) }}</strong>
+                </div>
+                <p class="muted">
+                  Collected {{ formatCurrency(alert.currentMonthIncomeValue) }} of {{ alert.monthly_rent }} expected this month.
+                </p>
+              </article>
             </div>
           </section>
 
@@ -127,19 +163,48 @@
           <section class="card">
             <div class="section-heading">
               <div>
-                <p class="eyebrow">Activity</p>
-                <h3>Recent portfolio activity</h3>
+                <p class="eyebrow">Ranking</p>
+                <h3>Profitability ranking</h3>
               </div>
             </div>
 
             <EmptyState
-              v-if="recentActivity.length === 0"
-              title="No recent activity"
-              description="Income and expense responses were empty for the current portfolio snapshot."
+              v-if="profitabilityRanking.length === 0"
+              title="No properties to rank"
+              description="Add a property to start seeing net cash-flow ranking."
             />
 
             <div v-else class="record-list">
-              <article v-for="item in recentActivity" :key="item.key" class="card record-card activity-card">
+              <article v-for="(property, index) in profitabilityRanking" :key="property.property_id" class="card record-card">
+                <div class="card-header">
+                  <div>
+                    <strong>#{{ index + 1 }} {{ property.name }}</strong>
+                    <p class="muted">{{ property.city }}, {{ property.state }}</p>
+                  </div>
+                  <strong :class="property.netCashFlowValue >= 0 ? 'amount-positive' : 'amount-negative'">
+                    {{ formatCurrency(property.netCashFlowValue) }}
+                  </strong>
+                </div>
+              </article>
+            </div>
+          </section>
+
+          <section class="card">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Timeline</p>
+                <h3>Portfolio activity timeline</h3>
+              </div>
+            </div>
+
+            <EmptyState
+              v-if="timelineItems.length === 0"
+              title="No activity in this range"
+              description="Adjust the date range to include income or expense activity."
+            />
+
+            <div v-else class="record-list">
+              <article v-for="item in timelineItems" :key="item.key" class="card record-card activity-card">
                 <div class="card-header">
                   <div>
                     <strong>{{ item.title }}</strong>
@@ -147,9 +212,9 @@
                   </div>
                   <div class="stack-sm activity-amount">
                     <strong :class="item.type === 'income' ? 'amount-positive' : 'amount-negative'">
-                      {{ item.amount }}
+                      {{ item.displayAmount }}
                     </strong>
-                    <span class="muted">{{ item.date }}</span>
+                    <span class="muted">{{ formatDate(item.date) }}</span>
                   </div>
                 </div>
               </article>
@@ -173,7 +238,7 @@ import LoadingSkeleton from '../components/LoadingSkeleton.vue'
 import SimpleBarChart from '../components/SimpleBarChart.vue'
 import SimpleLineChart from '../components/SimpleLineChart.vue'
 import StatCard from '../components/StatCard.vue'
-import { formatCurrency, inDateRange, parseCurrencyString } from '../utils/formatters'
+import { formatCurrency, formatDate, inDateRange, parseCurrencyString } from '../utils/formatters'
 
 const route = useRoute()
 const router = useRouter()
@@ -198,6 +263,12 @@ const snapshot = ref({
     totalIncomeRecords: 0,
     totalExpenseRecords: 0,
     estimatedMonthlyRentTotal: 0,
+    currentMonthIncomeTotal: 0,
+    paymentGapTotal: 0,
+    latePropertyCount: 0,
+    partialPropertyCount: 0,
+    paidPropertyCount: 0,
+    vacantPropertyCount: 0,
     totalIncomeAmount: 0,
     totalExpenseAmount: 0,
     netCashFlowAmount: 0
@@ -267,7 +338,7 @@ const monthlyTrend = computed(() => {
     .map(([, value]) => value)
 })
 
-const recentActivity = computed(() =>
+const timelineItems = computed(() =>
   snapshot.value.properties
     .flatMap((property) => [
       ...property.incomeRecords
@@ -278,7 +349,7 @@ const recentActivity = computed(() =>
           title: 'Income received',
           propertyName: property.name,
           description: record.description || 'No description provided.',
-          amount: record.amount,
+          displayAmount: `+ ${record.amount}`,
           date: record.date
         })),
       ...property.expenseRecords
@@ -289,26 +360,30 @@ const recentActivity = computed(() =>
           title: record.category,
           propertyName: property.name,
           description: record.description || record.vendor || 'No description provided.',
-          amount: record.amount,
+          displayAmount: `- ${record.amount}`,
           date: record.date
         }))
     ])
     .sort((left, right) => right.date.localeCompare(left.date))
+    .slice(0, 10)
+)
+
+const paymentGapAlerts = computed(() =>
+  snapshot.value.properties
+    .filter((property) => property.paymentGapValue > 0 && property.rentStatus !== 'vacant')
+    .sort((left, right) => right.paymentGapValue - left.paymentGapValue)
     .slice(0, 6)
 )
 
+const profitabilityRanking = computed(() =>
+  [...snapshot.value.properties]
+    .sort((left, right) => right.netCashFlowValue - left.netCashFlowValue)
+    .slice(0, 8)
+)
+
 const upcomingRent = computed(() => {
-  const today = new Date()
-  const monthKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`
   const expected = snapshot.value.summary.estimatedMonthlyRentTotal
-  const received = snapshot.value.properties.reduce(
-    (sum, property) =>
-      sum +
-      property.incomeRecords
-        .filter((record) => record.date.startsWith(monthKey))
-        .reduce((inner, record) => inner + parseCurrencyString(record.amount), 0),
-    0
-  )
+  const received = snapshot.value.summary.currentMonthIncomeTotal
 
   return {
     expected,
@@ -340,6 +415,13 @@ const deltas = computed(() => {
 
   return computeDelta(windowRange(start, end), windowRange(previousStart, previousEnd))
 })
+
+function getRentStatusLabel(status) {
+  if (status === 'paid') return 'Paid'
+  if (status === 'partial') return 'Partial'
+  if (status === 'late') return 'Late'
+  return 'Vacant'
+}
 
 function windowRange(start, end) {
   return {

@@ -21,6 +21,22 @@
         <strong>{{ property.monthly_rent }}</strong>
       </div>
       <div>
+        <span class="mini-label">Rent Status</span>
+        <strong :class="['rent-status', `rent-status-${property.rentStatus}`]">
+          {{ getRentStatusLabel(property.rentStatus) }}
+        </strong>
+      </div>
+      <div>
+        <span class="mini-label">Collected This Month</span>
+        <strong>{{ formatCurrency(property.currentMonthIncomeValue) }}</strong>
+      </div>
+      <div>
+        <span class="mini-label">Rent Gap This Month</span>
+        <strong :class="property.paymentGapValue > 0 ? 'amount-negative' : 'amount-positive'">
+          {{ formatCurrency(property.paymentGapValue) }}
+        </strong>
+      </div>
+      <div>
         <span class="mini-label">Income Records</span>
         <strong>{{ property.incomeRecordCount }}</strong>
       </div>
@@ -47,6 +63,7 @@
 
 <script setup>
 import { RouterLink } from 'vue-router'
+import { formatCurrency } from '../utils/formatters'
 
 defineProps({
   property: {
@@ -54,4 +71,11 @@ defineProps({
     required: true
   }
 })
+
+function getRentStatusLabel(status) {
+  if (status === 'paid') return 'Paid'
+  if (status === 'partial') return 'Partial'
+  if (status === 'late') return 'Late'
+  return 'Vacant'
+}
 </script>

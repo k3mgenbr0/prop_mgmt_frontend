@@ -8,7 +8,7 @@ This frontend is designed for a landlord or property owner who wants to:
 - review income and expenses tied to each property
 - confirm that the UI is connected to a real backend and real database-backed data
 
-The app uses a clean card-based dashboard layout, sidebar navigation, live summary widgets, filters, and lightweight charts derived from API responses. It also includes URL-persisted filters, CSV export, browser-saved property notes, toast feedback, and lightweight reporting tools for demos and day-to-day use.
+The app uses a clean card-based dashboard layout, sidebar navigation, live summary widgets, filters, and lightweight charts derived from API responses. It also includes URL-persisted filters, CSV export, browser-saved property notes, toast feedback, rent-status intelligence, payment-gap alerts, profitability ranking, timeline views, and a persistent light/dark mode toggle.
 
 ## Table of Contents
 
@@ -120,20 +120,26 @@ The app makes the connection visible in the UI by showing:
 
 - sidebar navigation
 - top header with primary actions
+- persistent light/dark mode toggle for usability and accessibility
 - live summary widgets
 - API status panel
 - date-range filtering with quick range buttons
 - KPI deltas compared to the previous period
 - upcoming rent collection snapshot
+- monthly rent-status tracking (paid, partial, late, vacant)
+- payment-gap alerts for occupied properties with rent shortfalls
+- profitability ranking by net cash flow
 - monthly income vs expense line chart
 - monthly rent by property bar chart
-- recent portfolio activity feed
+- portfolio activity timeline
 - property preview cards
 
 ### Properties
 
 - view all properties from the live API
 - occupancy and vacancy indicators
+- monthly rent-status indicator on each property card
+- current-month collected amount and rent-gap amount on cards
 - rent, income count, expense count, and net cash flow on property cards
 - filters for search, occupancy, and sorting
 - filter state saved in the URL
@@ -148,6 +154,7 @@ The app makes the connection visible in the UI by showing:
 - redesigned hero section with badges and primary actions
 - tabbed overview, income, and expenses workspace
 - property-level charts for income by year and expenses by category
+- property activity timeline combining income and expense events in chronological order
 - local browser-saved property notes
 - CSV export for property income and expense tables
 - view income records for that property
@@ -179,6 +186,12 @@ The app makes the connection visible in the UI by showing:
 - dedicated page showing live backend connectivity details
 - shows the expected backend docs URL when available
 
+### Themes
+
+- light and dark themes are supported
+- theme preference is saved in browser local storage
+- the app respects system dark-mode preference on first load
+
 ## Project Structure
 
 This is the current folder structure relevant to the app:
@@ -187,6 +200,7 @@ This is the current folder structure relevant to the app:
 src/
   composables/
     useQueryFilters.js
+    useTheme.js
   api/
     client.js
     dashboardService.js
