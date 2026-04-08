@@ -230,9 +230,9 @@
               <td>{{ property.name }}</td>
               <td>{{ getRentStatusLabel(property.rentStatus) }}</td>
               <td>{{ property.monthly_rent }}</td>
-              <td>{{ property.totals.total_income }}</td>
-              <td>{{ property.totals.total_expenses }}</td>
-              <td>{{ property.totals.net_cash_flow }}</td>
+              <td>{{ property.totals?.total_income || formatCurrency(property.totalIncomeValue) }}</td>
+              <td>{{ property.totals?.total_expenses || formatCurrency(property.totalExpenseValue) }}</td>
+              <td>{{ property.totals?.net_cash_flow || formatCurrency(property.netCashFlowValue) }}</td>
             </tr>
           </tbody>
         </table>
@@ -447,9 +447,9 @@ function exportSummary() {
       state: property.state,
       rent_status: getRentStatusLabel(property.rentStatus),
       monthly_rent: property.monthly_rent,
-      total_income: property.totals.total_income,
-      total_expenses: property.totals.total_expenses,
-      net_cash_flow: property.totals.net_cash_flow
+      total_income: property.totals?.total_income || formatCurrency(property.totalIncomeValue),
+      total_expenses: property.totals?.total_expenses || formatCurrency(property.totalExpenseValue),
+      net_cash_flow: property.totals?.net_cash_flow || formatCurrency(property.netCashFlowValue)
     }))
   )
 

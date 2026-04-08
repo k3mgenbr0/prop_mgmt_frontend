@@ -114,6 +114,7 @@
           eyebrow="Categories"
           title="Expenses by category"
           :items="expenseByCategory"
+          horizontal
           :value-formatter="formatCurrency"
           @select="filters.category = $event"
         />

@@ -106,6 +106,7 @@
           eyebrow="Top Properties"
           title="Income by property"
           :items="incomeByProperty"
+          horizontal
           :value-formatter="formatCurrency"
           @select="filters.property = $event"
         />

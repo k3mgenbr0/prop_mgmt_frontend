@@ -1053,6 +1053,39 @@ textarea {
   gap: 0.5rem;
 }
 
+.chart-horizontal-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.95rem;
+}
+
+.chart-horizontal-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.chart-horizontal-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+}
+
+.chart-horizontal-track {
+  width: 100%;
+  height: 16px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface-alt) 82%, var(--border));
+  overflow: hidden;
+}
+
+.chart-horizontal-bar {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent), var(--sky));
+}
+
 .chart-legend-row,
 .chart-key {
   display: flex;

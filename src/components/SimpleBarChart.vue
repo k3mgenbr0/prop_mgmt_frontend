@@ -11,6 +11,25 @@
       No chart data available.
     </div>
 
+    <div v-else-if="horizontal" class="chart-shell">
+      <div class="chart-horizontal-list">
+        <div
+          v-for="item in normalizedItems"
+          :key="item.label"
+          class="chart-horizontal-row chart-clickable"
+          @click="emit('select', item.label)"
+        >
+          <div class="chart-horizontal-head">
+            <span>{{ item.label }}</span>
+            <strong>{{ valueFormatter(item.value) }}</strong>
+          </div>
+          <div class="chart-horizontal-track">
+            <div class="chart-horizontal-bar" :style="{ width: `${item.percent}%` }"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div v-else class="chart-shell">
       <svg viewBox="0 0 360 180" class="chart-svg" role="img" :aria-label="title">
         <line x1="24" y1="150" x2="340" y2="150" class="chart-axis" />
@@ -60,6 +79,10 @@ const props = defineProps({
     type: Array,
     default: () => []
   },
+  horizontal: {
+    type: Boolean,
+    default: false
+  },
   valueFormatter: {
     type: Function,
     default: (value) => String(value)
@@ -76,7 +99,8 @@ const normalizedItems = computed(() => {
 
   return props.items.map((item) => ({
     ...item,
-    height: Math.max(10, (item.value / maxValue) * 108)
+    height: Math.max(10, (item.value / maxValue) * 108),
+    percent: Math.max(8, (item.value / maxValue) * 100)
   }))
 })
 

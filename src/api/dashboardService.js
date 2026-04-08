@@ -1,12 +1,17 @@
-import { getExpenses, getIncome, getProperties } from './propertyService'
+import { getApiStatus, getExpenses, getIncome, getProperties } from './propertyService'
 import { parseCurrencyString } from '../utils/formatters'
 
 const DASHBOARD_CACHE_TTL = 60000
 const SESSION_CACHE_KEY = 'property_dashboard_snapshot'
+const CACHE_VERSION = 2
 let snapshotCache = null
 
 export async function getPortfolioSnapshot() {
-  if (snapshotCache && Date.now() - snapshotCache.createdAt < DASHBOARD_CACHE_TTL) {
+  if (
+    snapshotCache &&
+    snapshotCache.version === CACHE_VERSION &&
+    Date.now() - snapshotCache.createdAt < DASHBOARD_CACHE_TTL
+  ) {
     return snapshotCache.data
   }
 
@@ -16,7 +21,7 @@ export async function getPortfolioSnapshot() {
     if (stored) {
       try {
         const parsed = JSON.parse(stored)
-        if (Date.now() - parsed.createdAt < DASHBOARD_CACHE_TTL) {
+        if (parsed.version === CACHE_VERSION && Date.now() - parsed.createdAt < DASHBOARD_CACHE_TTL) {
           snapshotCache = parsed
           return parsed.data
         }
@@ -26,12 +31,20 @@ export async function getPortfolioSnapshot() {
     }
   }
 
-  const properties = await getProperties()
+  const [apiStatus, properties] = await Promise.all([
+    getApiStatus().catch(() => null),
+    getProperties()
+  ])
   const monthKey = new Date().toISOString().slice(0, 7)
 
   const propertyMetrics = await Promise.all(
     properties.map(async (property) => {
-      const [incomeRecords, expenseRecords] = await Promise.all([getIncome(property.property_id), getExpenses(property.property_id)])
+      const [incomeResult, expenseResult] = await Promise.allSettled([
+        getIncome(property.property_id),
+        getExpenses(property.property_id)
+      ])
+      const incomeRecords = incomeResult.status === 'fulfilled' ? incomeResult.value : []
+      const expenseRecords = expenseResult.status === 'fulfilled' ? expenseResult.value : []
 
       const occupied = Boolean(property.tenant_name)
       const monthlyRentValue = parseCurrencyString(property.monthly_rent)
@@ -47,6 +60,11 @@ export async function getPortfolioSnapshot() {
         occupied,
         incomeRecords,
         expenseRecords,
+        totals: {
+          total_income: formatMoney(totalIncomeValue),
+          total_expenses: formatMoney(totalExpenseValue),
+          net_cash_flow: formatMoney(totalIncomeValue - totalExpenseValue)
+        },
         incomeRecordCount: incomeRecords.length,
         expenseRecordCount: expenseRecords.length,
         monthlyRentValue,
@@ -79,12 +97,14 @@ export async function getPortfolioSnapshot() {
   }
 
   const data = {
+    apiStatus,
     properties: propertyMetrics,
     summary,
     lastRefreshed: new Date().toISOString()
   }
 
   snapshotCache = {
+    version: CACHE_VERSION,
     createdAt: Date.now(),
     data
   }
@@ -94,6 +114,13 @@ export async function getPortfolioSnapshot() {
   }
 
   return data
+}
+
+function formatMoney(value) {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD'
+  }).format(value)
 }
 
 function inferRentStatus({ occupied, monthlyRentValue, currentMonthIncomeValue }) {
