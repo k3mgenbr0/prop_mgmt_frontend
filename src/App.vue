@@ -19,8 +19,7 @@
         </div>
         <nav class="topnav">
           <div class="topnav-links">
-            <RouterLink to="/">Home</RouterLink>
-            <RouterLink to="/dashboard">Dashboard</RouterLink>
+            <RouterLink to="/">Dashboard</RouterLink>
             <RouterLink to="/properties">Properties</RouterLink>
             <RouterLink to="/reports">Reports</RouterLink>
           </div>

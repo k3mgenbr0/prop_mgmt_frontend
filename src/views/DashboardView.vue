@@ -3,11 +3,12 @@
     <div class="dashboard-welcome card">
       <div class="stack-md">
         <div>
-          <p class="eyebrow">Today</p>
-          <h2>Welcome back</h2>
+          <p class="eyebrow">Welcome</p>
+          <h2>Choose where you want to start</h2>
           <p class="muted dashboard-copy">
-            This dashboard is your starting point for the day. Use it to see what needs attention, jump into common
-            workflows, and keep an eye on the health of your portfolio without digging through reports first.
+            You are looking at a live portfolio dashboard, so something useful should appear right away. Use the quick
+            actions below to jump into the part of the app you need, while keeping the high-level property summary in
+            view.
           </p>
         </div>
 
@@ -76,6 +77,18 @@
           <p class="eyebrow">Track</p>
           <h3>Review expenses</h3>
           <p class="muted">See recent expense activity, vendor patterns, and category trends without leaving the app.</p>
+        </RouterLink>
+
+        <RouterLink class="card dashboard-action-card" to="/reports">
+          <p class="eyebrow">Report</p>
+          <h3>Open reports</h3>
+          <p class="muted">Use printable summaries, exports, rankings, and the activity calendar when you need more detail.</p>
+        </RouterLink>
+
+        <RouterLink class="card dashboard-action-card" to="/api-status">
+          <p class="eyebrow">Verify</p>
+          <h3>Check API status</h3>
+          <p class="muted">Confirm the app is pointed at the live backend and review environment details in one place.</p>
         </RouterLink>
       </div>
 
@@ -291,7 +304,7 @@ import EmptyState from '../components/EmptyState.vue'
 import LoadingSkeleton from '../components/LoadingSkeleton.vue'
 import SimpleLineChart from '../components/SimpleLineChart.vue'
 import StatCard from '../components/StatCard.vue'
-import { formatCurrency, formatDate, inDateRange, parseCurrencyString } from '../utils/formatters'
+import { formatCurrency, formatDate, formatDateTime, inDateRange, parseCurrencyString } from '../utils/formatters'
 
 const route = useRoute()
 const router = useRouter()
@@ -326,7 +339,7 @@ const snapshot = ref({
 
 const refreshedLabel = computed(() => {
   if (!snapshot.value.lastRefreshed) return 'just now'
-  return formatDate(snapshot.value.lastRefreshed)
+  return formatDateTime(snapshot.value.lastRefreshed)
 })
 
 const filteredSummary = computed(() => {
