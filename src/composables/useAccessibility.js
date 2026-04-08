@@ -4,7 +4,10 @@ const STORAGE_KEY = 'pm-accessibility'
 const settings = reactive({
   fontScale: 'default',
   reducedMotion: false,
-  highContrast: false
+  highContrast: false,
+  readableFont: false,
+  underlineLinks: false,
+  comfortableSpacing: false
 })
 let initialized = false
 
@@ -28,6 +31,9 @@ function applySettings() {
   document.documentElement.setAttribute('data-font-scale', settings.fontScale)
   document.documentElement.setAttribute('data-motion', settings.reducedMotion ? 'reduced' : 'default')
   document.documentElement.setAttribute('data-contrast', settings.highContrast ? 'high' : 'default')
+  document.documentElement.setAttribute('data-readable-font', settings.readableFont ? 'enabled' : 'default')
+  document.documentElement.setAttribute('data-underlines', settings.underlineLinks ? 'enabled' : 'default')
+  document.documentElement.setAttribute('data-spacing', settings.comfortableSpacing ? 'comfortable' : 'default')
 }
 
 export function useAccessibility() {

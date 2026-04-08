@@ -25,6 +25,21 @@
       </label>
 
       <label class="sidebar-toggle">
+        <span>Readable font</span>
+        <input v-model="settings.readableFont" type="checkbox" />
+      </label>
+
+      <label class="sidebar-toggle">
+        <span>Underline links</span>
+        <input v-model="settings.underlineLinks" type="checkbox" />
+      </label>
+
+      <label class="sidebar-toggle">
+        <span>Comfortable spacing</span>
+        <input v-model="settings.comfortableSpacing" type="checkbox" />
+      </label>
+
+      <label class="sidebar-toggle">
         <span>Reduced motion</span>
         <input v-model="settings.reducedMotion" type="checkbox" />
       </label>

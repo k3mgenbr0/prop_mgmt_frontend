@@ -1,7 +1,7 @@
 <template>
-  <article class="stat-card">
-    <p>{{ label }}</p>
-    <strong>{{ value }}</strong>
+  <article class="card stat-card">
+    <p class="mini-label">{{ label }}</p>
+    <strong class="stat-card-value">{{ value }}</strong>
   </article>
 </template>
 

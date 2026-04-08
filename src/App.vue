@@ -5,21 +5,30 @@
 
     <div class="app-main">
       <header class="topbar">
-        <div>
+        <div class="topbar-brand">
           <p class="eyebrow">Property Management App</p>
           <h1>Landlord Dashboard</h1>
           <p class="muted topbar-copy">
             Live portfolio management connected to your backend API and database.
           </p>
+          <div class="topbar-pills">
+            <span class="topbar-pill">Live API</span>
+            <span class="topbar-pill">Cloud Run</span>
+            <span class="topbar-pill">Portfolio Reporting</span>
+          </div>
         </div>
         <nav class="topnav">
-          <RouterLink to="/">Dashboard</RouterLink>
-          <RouterLink to="/properties">Properties</RouterLink>
-          <RouterLink to="/reports">Reports</RouterLink>
-          <RouterLink to="/properties/new">Add Property</RouterLink>
-          <button class="button button-theme" @click="toggleTheme">
-            {{ isDark ? 'Light Mode' : 'Dark Mode' }}
-          </button>
+          <div class="topnav-links">
+            <RouterLink to="/">Dashboard</RouterLink>
+            <RouterLink to="/properties">Properties</RouterLink>
+            <RouterLink to="/reports">Reports</RouterLink>
+          </div>
+          <div class="topnav-actions">
+            <RouterLink to="/properties/new">Add Property</RouterLink>
+            <button class="button button-theme" @click="toggleTheme">
+              {{ isDark ? 'Light Mode' : 'Dark Mode' }}
+            </button>
+          </div>
         </nav>
       </header>
 

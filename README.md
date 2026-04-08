@@ -218,6 +218,9 @@ The app makes the connection visible in the UI by showing:
 ### Accessibility
 
 - larger text mode
+- readable font mode
+- underline-links mode
+- comfortable spacing mode
 - reduced-motion mode
 - high-contrast mode
 - skip-to-content link for keyboard users
