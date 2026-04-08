@@ -196,41 +196,32 @@
           </div>
         </section>
 
-        <div class="stack-lg">
-          <section class="card">
-            <div class="section-heading">
-              <div>
-                <p class="eyebrow">Rent Snapshot</p>
-                <h3>This month’s collection progress</h3>
-              </div>
-              <RouterLink class="button button-secondary" to="/income">Open income</RouterLink>
+        <section class="card dashboard-secondary-card">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Rent Snapshot</p>
+              <h3>This month’s collection progress</h3>
             </div>
+            <RouterLink class="button button-secondary" to="/income">Open income</RouterLink>
+          </div>
 
-            <div class="mini-stats mini-stats-wide">
-              <div>
-                <span class="mini-label">Expected this month</span>
-                <strong>{{ formatCurrency(upcomingRent.expected) }}</strong>
-              </div>
-              <div>
-                <span class="mini-label">Received this month</span>
-                <strong>{{ formatCurrency(upcomingRent.received) }}</strong>
-              </div>
-              <div>
-                <span class="mini-label">Remaining gap</span>
-                <strong :class="upcomingRent.remaining > 0 ? 'amount-negative' : 'amount-positive'">
-                  {{ formatCurrency(upcomingRent.remaining) }}
-                </strong>
-              </div>
+          <div class="mini-stats mini-stats-wide">
+            <div>
+              <span class="mini-label">Expected this month</span>
+              <strong>{{ formatCurrency(upcomingRent.expected) }}</strong>
             </div>
-          </section>
-
-          <ConnectionPanel
-            :api-base-url="apiBaseUrl"
-            :api-status="snapshot.apiStatus"
-            :last-refreshed="snapshot.lastRefreshed"
-            :property-count="snapshot.summary.totalProperties"
-          />
-        </div>
+            <div>
+              <span class="mini-label">Received this month</span>
+              <strong>{{ formatCurrency(upcomingRent.received) }}</strong>
+            </div>
+            <div>
+              <span class="mini-label">Remaining gap</span>
+              <strong :class="upcomingRent.remaining > 0 ? 'amount-negative' : 'amount-positive'">
+                {{ formatCurrency(upcomingRent.remaining) }}
+              </strong>
+            </div>
+          </div>
+        </section>
       </div>
 
       <section class="card">
@@ -241,7 +232,7 @@
           </div>
         </div>
 
-        <div class="detail-grid">
+        <div class="detail-grid dashboard-chart-grid">
           <SimpleLineChart
             eyebrow="Cash Flow"
             title="Monthly income vs expenses"
@@ -296,7 +287,6 @@ import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { getPortfolioSnapshot } from '../api/dashboardService'
 import { useQueryFilters } from '../composables/useQueryFilters'
 import AlertMessage from '../components/AlertMessage.vue'
-import ConnectionPanel from '../components/ConnectionPanel.vue'
 import EmptyState from '../components/EmptyState.vue'
 import LoadingSkeleton from '../components/LoadingSkeleton.vue'
 import SimpleLineChart from '../components/SimpleLineChart.vue'
@@ -305,10 +295,6 @@ import { formatCurrency, formatDate, inDateRange, parseCurrencyString } from '..
 
 const route = useRoute()
 const router = useRouter()
-const apiBaseUrl =
-  import.meta.env.VITE_API_BASE_URL ||
-  'https://prop-mgmt-api-129124698283.us-central1.run.app'
-
 const loading = ref(true)
 const errorMessage = ref('')
 const flashMessage = ref('')
@@ -317,7 +303,6 @@ const filters = useQueryFilters(route, router, {
   end: ''
 })
 const snapshot = ref({
-  apiStatus: null,
   properties: [],
   summary: {
     totalProperties: 0,

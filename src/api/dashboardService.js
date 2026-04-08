@@ -1,17 +1,37 @@
-import { getApiStatus, getExpenses, getIncome, getProperties, getPropertyTotals } from './propertyService'
+import { getExpenses, getIncome, getProperties } from './propertyService'
 import { parseCurrencyString } from '../utils/formatters'
 
+const DASHBOARD_CACHE_TTL = 60000
+const SESSION_CACHE_KEY = 'property_dashboard_snapshot'
+let snapshotCache = null
+
 export async function getPortfolioSnapshot() {
-  const [apiStatus, properties] = await Promise.all([getApiStatus(), getProperties()])
+  if (snapshotCache && Date.now() - snapshotCache.createdAt < DASHBOARD_CACHE_TTL) {
+    return snapshotCache.data
+  }
+
+  if (typeof window !== 'undefined') {
+    const stored = window.sessionStorage.getItem(SESSION_CACHE_KEY)
+
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored)
+        if (Date.now() - parsed.createdAt < DASHBOARD_CACHE_TTL) {
+          snapshotCache = parsed
+          return parsed.data
+        }
+      } catch {
+        window.sessionStorage.removeItem(SESSION_CACHE_KEY)
+      }
+    }
+  }
+
+  const properties = await getProperties()
   const monthKey = new Date().toISOString().slice(0, 7)
 
   const propertyMetrics = await Promise.all(
     properties.map(async (property) => {
-      const [incomeRecords, expenseRecords, totals] = await Promise.all([
-        getIncome(property.property_id),
-        getExpenses(property.property_id),
-        getPropertyTotals(property.property_id)
-      ])
+      const [incomeRecords, expenseRecords] = await Promise.all([getIncome(property.property_id), getExpenses(property.property_id)])
 
       const occupied = Boolean(property.tenant_name)
       const monthlyRentValue = parseCurrencyString(property.monthly_rent)
@@ -19,22 +39,23 @@ export async function getPortfolioSnapshot() {
         .filter((record) => record.date.startsWith(monthKey))
         .reduce((sum, record) => sum + parseCurrencyString(record.amount), 0)
       const paymentGapValue = Math.max(monthlyRentValue - currentMonthIncomeValue, 0)
+      const totalIncomeValue = incomeRecords.reduce((sum, record) => sum + parseCurrencyString(record.amount), 0)
+      const totalExpenseValue = expenseRecords.reduce((sum, record) => sum + parseCurrencyString(record.amount), 0)
 
       return {
         ...property,
         occupied,
         incomeRecords,
         expenseRecords,
-        totals,
         incomeRecordCount: incomeRecords.length,
         expenseRecordCount: expenseRecords.length,
         monthlyRentValue,
         currentMonthIncomeValue,
         paymentGapValue,
         rentStatus: inferRentStatus({ occupied, monthlyRentValue, currentMonthIncomeValue }),
-        totalIncomeValue: parseCurrencyString(totals.total_income),
-        totalExpenseValue: parseCurrencyString(totals.total_expenses),
-        netCashFlowValue: parseCurrencyString(totals.net_cash_flow)
+        totalIncomeValue,
+        totalExpenseValue,
+        netCashFlowValue: totalIncomeValue - totalExpenseValue
       }
     })
   )
@@ -57,12 +78,22 @@ export async function getPortfolioSnapshot() {
     netCashFlowAmount: propertyMetrics.reduce((sum, property) => sum + property.netCashFlowValue, 0)
   }
 
-  return {
-    apiStatus,
+  const data = {
     properties: propertyMetrics,
     summary,
     lastRefreshed: new Date().toISOString()
   }
+
+  snapshotCache = {
+    createdAt: Date.now(),
+    data
+  }
+
+  if (typeof window !== 'undefined') {
+    window.sessionStorage.setItem(SESSION_CACHE_KEY, JSON.stringify(snapshotCache))
+  }
+
+  return data
 }
 
 function inferRentStatus({ occupied, monthlyRentValue, currentMonthIncomeValue }) {
