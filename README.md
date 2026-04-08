@@ -161,6 +161,8 @@ The app makes the connection visible in the UI by showing:
 - property-level charts for income by year and expenses by category
 - property activity timeline combining income and expense events in chronological order
 - local browser-saved property notes
+- property summary CSV export
+- combined property transaction ledger CSV export
 - CSV export for property income and expense tables
 - view income records for that property
 - add new income records
@@ -176,6 +178,7 @@ The app makes the connection visible in the UI by showing:
 - CSV export for the filtered table
 - monthly income trend chart
 - income by property chart
+- month-based income calendar view
 
 ### Expense Overview
 
@@ -187,14 +190,19 @@ The app makes the connection visible in the UI by showing:
 - monthly expense trend chart
 - expenses by category chart
 - clicking chart categories can drive filtering
+- month-based expense calendar view
 
 ### Reports
 
 - dedicated reports page built from the live portfolio snapshot
+- monthly, year-to-date, and all-time report presets
+- last 90 days and last 12 months presets
 - executive summary cards for occupancy, paid/late properties, and portfolio cash flow
 - top-performer and rent-gap ranking sections
+- monthly portfolio activity calendar
 - printable property-by-property summary table
-- CSV export and print-friendly styling
+- summary, transaction, and rent-gap CSV exports
+- print-friendly styling
 
 ### API Status
 
@@ -420,6 +428,7 @@ The detail page shows:
 - income records
 - expense records
 - forms for adding new income and expense records
+- a property summary export and full ledger export
 - CSV export buttons for property-level transactions
 
 ### 6. Edit or delete a property
@@ -443,6 +452,7 @@ You can:
 - save reusable income filter views
 - export the filtered rows to CSV
 - view live charts based on the filtered data
+- browse income activity in a monthly calendar
 
 ### 8. Review expense activity
 
@@ -458,6 +468,7 @@ You can:
 - save reusable expense filter views
 - export the filtered rows to CSV
 - view charts based on the filtered data
+- browse expense activity in a monthly calendar
 
 ### 9. Open Reports
 
@@ -465,8 +476,10 @@ Open **Reports** in the sidebar.
 
 You can:
 - review a printable executive summary
+- switch between month, last 90 days, year-to-date, last 12 months, and all-time report presets
 - see top-performing properties and current rent-gap leaders
-- print the report or export a property summary CSV
+- review a portfolio activity calendar for the selected month
+- print the report or export summary, transaction, and rent-gap CSVs
 
 ### 10. Use the API Status page
 

@@ -302,14 +302,18 @@ textarea {
 .topnav {
   display: flex;
   gap: 0.75rem;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  align-items: center;
 }
 
-.topnav a {
+.topnav a,
+.topnav .button-theme {
   padding: 0.7rem 1rem;
   border-radius: 999px;
   background: var(--surface-alt);
   border: 1px solid var(--border);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .topnav a.router-link-exact-active {
@@ -423,6 +427,36 @@ textarea {
 
 .report-card {
   break-inside: avoid;
+}
+
+.month-picker {
+  min-width: 180px;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.85rem;
+}
+
+.calendar-day {
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 0.9rem;
+  background: color-mix(in srgb, var(--surface-alt) 78%, transparent);
+}
+
+.calendar-day-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.calendar-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
 }
 
 .button {
@@ -1085,6 +1119,10 @@ textarea {
 
   .dashboard-grid {
     grid-template-columns: 1fr;
+  }
+
+  .topnav {
+    flex-wrap: wrap;
   }
 
   .property-spotlight,

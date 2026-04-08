@@ -119,6 +119,37 @@
         />
       </div>
 
+      <section class="card">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Calendar</p>
+            <h3>Expense calendar view</h3>
+          </div>
+          <label class="month-picker">
+            Month
+            <input v-model="calendarMonth" type="month" />
+          </label>
+        </div>
+
+        <div class="calendar-grid">
+          <article v-for="day in calendarDays" :key="day.date" class="calendar-day">
+            <div class="card-header">
+              <strong>{{ day.dayNumber }}</strong>
+              <span class="muted">{{ day.items.length }} item{{ day.items.length === 1 ? '' : 's' }}</span>
+            </div>
+
+            <div v-if="day.items.length" class="calendar-day-list">
+              <div v-for="item in day.items" :key="item.key" class="calendar-item">
+                <strong class="amount-negative">{{ item.amount }}</strong>
+                <span class="muted">{{ item.propertyName }}</span>
+              </div>
+            </div>
+
+            <p v-else class="muted">No expenses</p>
+          </article>
+        </div>
+      </section>
+
       <EmptyState
         v-if="allExpenseRows.length === 0"
         title="No expense records returned"
@@ -170,6 +201,7 @@ const router = useRouter()
 const loading = ref(true)
 const errorMessage = ref('')
 const savedViews = ref(readSavedViews())
+const calendarMonth = ref(new Date().toISOString().slice(0, 7))
 const snapshot = ref({ properties: [], summary: { totalProperties: 0, totalExpenseRecords: 0, totalExpenseAmount: 0 } })
 const filters = useQueryFilters(route, router, {
   property: '',
@@ -253,6 +285,30 @@ const monthlyExpenseTrend = computed(() => {
       label: key.slice(5),
       primary: total
     }))
+})
+
+const calendarDays = computed(() => {
+  const [year, month] = calendarMonth.value.split('-').map(Number)
+  const daysInMonth = new Date(year, month, 0).getDate()
+  const itemsByDate = new Map()
+
+  filteredExpenseRows.value
+    .filter((row) => row.date.startsWith(calendarMonth.value))
+    .forEach((row) => {
+      const bucket = itemsByDate.get(row.date) || []
+      bucket.push(row)
+      itemsByDate.set(row.date, bucket)
+    })
+
+  return Array.from({ length: daysInMonth }, (_, index) => {
+    const dayNumber = index + 1
+    const date = `${calendarMonth.value}-${String(dayNumber).padStart(2, '0')}`
+    return {
+      date,
+      dayNumber,
+      items: itemsByDate.get(date) || []
+    }
+  })
 })
 
 async function loadExpenseOverview() {

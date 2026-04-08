@@ -69,6 +69,19 @@
         </div>
 
         <div v-if="activeTab === 'overview'" class="stack-lg">
+          <div class="card-actions">
+            <button class="button button-secondary" @click="exportPropertySummary">
+              Export Summary CSV
+            </button>
+            <button
+              class="button button-secondary"
+              :disabled="incomeRecords.length + expenseRecords.length === 0"
+              @click="exportPropertyLedger"
+            >
+              Export Full Ledger CSV
+            </button>
+          </div>
+
           <div class="mini-stats mini-stats-wide">
             <div>
               <span class="mini-label">Monthly Rent</span>
@@ -532,6 +545,62 @@ function exportExpenses() {
   pushToast({
     title: 'Expense export ready',
     message: 'The property expense records were downloaded as CSV.',
+    variant: 'success'
+  })
+}
+
+function exportPropertySummary() {
+  downloadCsv(`property-${props.id}-summary.csv`, [
+    {
+      property_id: summary.value.property.property_id,
+      name: summary.value.property.name,
+      address: summary.value.property.address,
+      city: summary.value.property.city,
+      state: summary.value.property.state,
+      postal_code: summary.value.property.postal_code,
+      property_type: summary.value.property.property_type,
+      tenant_name: summary.value.property.tenant_name || '',
+      monthly_rent: summary.value.property.monthly_rent,
+      total_income: summary.value.totals.total_income,
+      total_expenses: summary.value.totals.total_expenses,
+      net_cash_flow: summary.value.totals.net_cash_flow,
+      income_records: incomeRecords.value.length,
+      expense_records: expenseRecords.value.length
+    }
+  ])
+
+  pushToast({
+    title: 'Summary export ready',
+    message: 'The property summary report was downloaded as CSV.',
+    variant: 'success'
+  })
+}
+
+function exportPropertyLedger() {
+  const ledgerRows = [
+    ...incomeRecords.value.map((row) => ({
+      date: row.date,
+      type: 'income',
+      category: 'Income',
+      vendor: '',
+      amount: row.amount,
+      description: row.description || ''
+    })),
+    ...expenseRecords.value.map((row) => ({
+      date: row.date,
+      type: 'expense',
+      category: row.category,
+      vendor: row.vendor || '',
+      amount: row.amount,
+      description: row.description || ''
+    }))
+  ].sort((left, right) => right.date.localeCompare(left.date))
+
+  downloadCsv(`property-${props.id}-ledger.csv`, ledgerRows)
+
+  pushToast({
+    title: 'Ledger export ready',
+    message: 'The combined property transaction ledger was downloaded as CSV.',
     variant: 'success'
   })
 }
