@@ -123,18 +123,20 @@ The app makes the connection visible in the UI by showing:
 - sidebar navigation
 - top header with primary actions
 - persistent light/dark mode toggle for usability and accessibility
+- welcoming operations-focused dashboard
 - live summary widgets
+- quick workflow cards for properties, adding properties, income, and expenses
+- priority follow-up section for payment gaps and vacant properties
 - API status panel
 - date-range filtering with quick range buttons
+- this-period cash-flow summary
 - KPI deltas compared to the previous period
 - upcoming rent collection snapshot
 - monthly rent-status tracking (paid, partial, late, vacant)
-- payment-gap alerts for occupied properties with rent shortfalls
+- payment-gap and vacancy follow-up guidance
 - profitability ranking by net cash flow
 - monthly income vs expense line chart
-- monthly rent by property bar chart
 - portfolio activity timeline
-- property preview cards
 
 ### Home
 
@@ -398,13 +400,14 @@ This screen is meant to help first-time users quickly choose where to begin.
 From the landing page or the sidebar, open **Dashboard**.
 
 Here you should see:
-- summary cards
-- property count
-- occupancy metrics
-- income and expense counts
-- charts
+- a friendlier daily workspace
+- quick links into the most common tasks
+- high-level portfolio summary cards
+- follow-up guidance for payment gaps and vacancies
+- recent activity
 - date-range controls
 - API connection details
+- portfolio trends lower on the page when you need more context
 
 If the backend is reachable, the dashboard should populate automatically.
 

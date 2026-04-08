@@ -7,14 +7,14 @@
       <header class="topbar">
         <div class="topbar-brand">
           <p class="eyebrow">Property Management App</p>
-          <h1>Landlord Dashboard</h1>
+          <h1>Property Operations</h1>
           <p class="muted topbar-copy">
-            Live portfolio management connected to your backend API and database.
+            Manage properties, rent activity, expenses, and reporting from one place.
           </p>
           <div class="topbar-pills">
             <span class="topbar-pill">Live API</span>
             <span class="topbar-pill">Cloud Run</span>
-            <span class="topbar-pill">Portfolio Reporting</span>
+            <span class="topbar-pill">Portfolio Workspace</span>
           </div>
         </div>
         <nav class="topnav">

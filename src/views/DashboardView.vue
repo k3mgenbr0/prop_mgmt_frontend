@@ -1,95 +1,209 @@
 <template>
   <section class="stack-lg">
-    <div class="hero card">
-      <div>
-        <p class="eyebrow">Live Dashboard</p>
-        <h2>Portfolio Snapshot</h2>
-        <p class="muted">
-          Every widget, alert, rank, and timeline entry is derived from live property, income, and expense responses.
-        </p>
+    <div class="dashboard-welcome card">
+      <div class="stack-md">
+        <div>
+          <p class="eyebrow">Today</p>
+          <h2>Welcome back</h2>
+          <p class="muted dashboard-copy">
+            This dashboard is your starting point for the day. Use it to see what needs attention, jump into common
+            workflows, and keep an eye on the health of your portfolio without digging through reports first.
+          </p>
+        </div>
+
+        <div class="dashboard-chip-row">
+          <span class="topbar-pill">Live data</span>
+          <span class="topbar-pill">Last refreshed {{ refreshedLabel }}</span>
+          <span class="topbar-pill">{{ filters.start && filters.end ? 'Custom date range' : 'All-time snapshot' }}</span>
+        </div>
       </div>
-      <div class="card-actions">
-        <button class="button button-secondary" :disabled="loading" @click="loadDashboard">
-          {{ loading ? 'Refreshing...' : 'Refresh Data' }}
-        </button>
-        <RouterLink class="button button-primary" to="/properties/new">Add Property</RouterLink>
+
+      <div class="stack-md dashboard-welcome-actions">
+        <div class="quick-filter-group">
+          <button class="button button-secondary" :disabled="loading" @click="loadDashboard">
+            {{ loading ? 'Refreshing...' : 'Refresh Data' }}
+          </button>
+          <button class="button button-secondary" @click="setQuickRange(30)">Last 30 days</button>
+          <button class="button button-secondary" @click="setQuickRange(90)">Last 90 days</button>
+          <button class="button button-secondary" @click="clearRange">All time</button>
+        </div>
+
+        <div class="dashboard-date-row">
+          <label>
+            Start Date
+            <input v-model="filters.start" type="date" />
+          </label>
+
+          <label>
+            End Date
+            <input v-model="filters.end" type="date" />
+          </label>
+        </div>
       </div>
     </div>
 
     <AlertMessage :message="flashMessage" variant="success" />
     <AlertMessage :message="errorMessage" variant="error" />
 
-    <section class="card filters-card">
-      <div class="section-heading">
-        <div>
-          <p class="eyebrow">Date Range</p>
-          <h3>Focus on a reporting window</h3>
-        </div>
-      </div>
-
-      <div class="filter-grid">
-        <label>
-          Start Date
-          <input v-model="filters.start" type="date" />
-        </label>
-
-        <label>
-          End Date
-          <input v-model="filters.end" type="date" />
-        </label>
-
-        <div class="quick-filter-group">
-          <button class="button button-secondary" @click="setQuickRange(30)">Last 30 days</button>
-          <button class="button button-secondary" @click="setQuickRange(90)">Last 90 days</button>
-          <button class="button button-secondary" @click="clearRange">All time</button>
-        </div>
-      </div>
-    </section>
-
     <LoadingSkeleton v-if="loading" :count="8" />
 
     <template v-else>
-      <div class="stats-grid dashboard-stats-grid">
-        <StatCard label="Total Properties" :value="String(snapshot.summary.totalProperties)" />
+      <div class="dashboard-action-grid">
+        <RouterLink class="card dashboard-action-card" to="/properties">
+          <p class="eyebrow">Manage</p>
+          <h3>Review properties</h3>
+          <p class="muted">
+            Browse all {{ snapshot.summary.totalProperties }} property records, compare performance, and open detail
+            pages quickly.
+          </p>
+        </RouterLink>
+
+        <RouterLink class="card dashboard-action-card" to="/properties/new">
+          <p class="eyebrow">Create</p>
+          <h3>Add a property</h3>
+          <p class="muted">Create a new record when you are onboarding another rental into the portfolio.</p>
+        </RouterLink>
+
+        <RouterLink class="card dashboard-action-card" to="/income">
+          <p class="eyebrow">Collect</p>
+          <h3>Review income</h3>
+          <p class="muted">
+            Track rent received, inspect recent activity, and work through payment gaps across occupied properties.
+          </p>
+        </RouterLink>
+
+        <RouterLink class="card dashboard-action-card" to="/expenses">
+          <p class="eyebrow">Track</p>
+          <h3>Review expenses</h3>
+          <p class="muted">See recent expense activity, vendor patterns, and category trends without leaving the app.</p>
+        </RouterLink>
+      </div>
+
+      <div class="stats-grid dashboard-summary-grid">
+        <StatCard label="Properties" :value="String(snapshot.summary.totalProperties)" />
         <StatCard label="Occupied" :value="String(snapshot.summary.occupiedProperties)" />
         <StatCard label="Vacant" :value="String(snapshot.summary.vacantProperties)" />
         <StatCard label="Expected Monthly Rent" :value="formatCurrency(snapshot.summary.estimatedMonthlyRentTotal)" />
-        <StatCard label="Rent Paid" :value="String(snapshot.summary.paidPropertyCount)" />
-        <StatCard label="Partial / Late" :value="`${snapshot.summary.partialPropertyCount} / ${snapshot.summary.latePropertyCount}`" />
         <StatCard label="Income In Range" :value="formatCurrency(filteredSummary.incomeTotal)" />
         <StatCard label="Expenses In Range" :value="formatCurrency(filteredSummary.expenseTotal)" />
       </div>
 
-      <div class="kpi-strip">
-        <section class="card delta-card">
-          <span class="mini-label">Income change vs previous period</span>
-          <strong>{{ signedCurrency(deltas.income) }}</strong>
+      <div class="detail-grid dashboard-priority-grid">
+        <section class="card">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Needs Attention</p>
+              <h3>Priority follow-up</h3>
+            </div>
+          </div>
+
+          <div class="mini-stats mini-stats-wide">
+            <div>
+              <span class="mini-label">Payment gaps</span>
+              <strong class="amount-negative">{{ paymentGapAlerts.length }}</strong>
+            </div>
+            <div>
+              <span class="mini-label">Vacant properties</span>
+              <strong>{{ vacantProperties.length }}</strong>
+            </div>
+            <div>
+              <span class="mini-label">Rent collected this month</span>
+              <strong>{{ formatCurrency(snapshot.summary.currentMonthIncomeTotal) }}</strong>
+            </div>
+          </div>
+
+          <div class="dashboard-priority-list">
+            <article v-for="item in priorityItems" :key="item.key" class="dashboard-priority-item">
+              <div>
+                <strong>{{ item.title }}</strong>
+                <p class="muted">{{ item.detail }}</p>
+              </div>
+              <RouterLink class="button button-secondary" :to="item.to">Open</RouterLink>
+            </article>
+          </div>
         </section>
-        <section class="card delta-card">
-          <span class="mini-label">Expense change vs previous period</span>
-          <strong>{{ signedCurrency(deltas.expense) }}</strong>
-        </section>
-        <section class="card delta-card">
-          <span class="mini-label">Net cash flow change</span>
-          <strong>{{ signedCurrency(deltas.net) }}</strong>
+
+        <section class="card">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">At A Glance</p>
+              <h3>What this period looks like</h3>
+            </div>
+          </div>
+
+          <div class="dashboard-overview-stack">
+            <div class="dashboard-overview-row">
+              <span class="mini-label">Income</span>
+              <strong class="amount-positive">{{ formatCurrency(filteredSummary.incomeTotal) }}</strong>
+            </div>
+            <div class="dashboard-overview-row">
+              <span class="mini-label">Expenses</span>
+              <strong class="amount-negative">{{ formatCurrency(filteredSummary.expenseTotal) }}</strong>
+            </div>
+            <div class="dashboard-overview-row">
+              <span class="mini-label">Net cash flow</span>
+              <strong :class="filteredSummary.netTotal >= 0 ? 'amount-positive' : 'amount-negative'">
+                {{ formatCurrency(filteredSummary.netTotal) }}
+              </strong>
+            </div>
+            <div class="dashboard-overview-row">
+              <span class="mini-label">Income change vs previous period</span>
+              <strong>{{ signedCurrency(deltas.income) }}</strong>
+            </div>
+            <div class="dashboard-overview-row">
+              <span class="mini-label">Expense change vs previous period</span>
+              <strong>{{ signedCurrency(deltas.expense) }}</strong>
+            </div>
+            <div class="dashboard-overview-row">
+              <span class="mini-label">Net cash flow change</span>
+              <strong>{{ signedCurrency(deltas.net) }}</strong>
+            </div>
+          </div>
         </section>
       </div>
 
-      <div class="detail-grid dashboard-grid">
-        <div class="stack-lg">
-          <ConnectionPanel
-            :api-base-url="apiBaseUrl"
-            :api-status="snapshot.apiStatus"
-            :last-refreshed="snapshot.lastRefreshed"
-            :property-count="snapshot.summary.totalProperties"
+      <div class="detail-grid dashboard-support-grid">
+        <section class="card">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Recent Activity</p>
+              <h3>Latest portfolio updates</h3>
+            </div>
+            <RouterLink class="button button-secondary" to="/reports">Open reports</RouterLink>
+          </div>
+
+          <EmptyState
+            v-if="timelineItems.length === 0"
+            title="No activity in this range"
+            description="Adjust the date range to include income or expense activity."
           />
 
+          <div v-else class="record-list">
+            <article v-for="item in timelineItems" :key="item.key" class="card record-card activity-card">
+              <div class="card-header">
+                <div>
+                  <strong>{{ item.title }}</strong>
+                  <p class="muted">{{ item.propertyName }} · {{ item.description }}</p>
+                </div>
+                <div class="stack-sm activity-amount">
+                  <strong :class="item.type === 'income' ? 'amount-positive' : 'amount-negative'">
+                    {{ item.displayAmount }}
+                  </strong>
+                  <span class="muted">{{ formatDate(item.date) }}</span>
+                </div>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <div class="stack-lg">
           <section class="card">
             <div class="section-heading">
               <div>
                 <p class="eyebrow">Rent Snapshot</p>
-                <h3>Upcoming rent collection</h3>
+                <h3>This month’s collection progress</h3>
               </div>
+              <RouterLink class="button button-secondary" to="/income">Open income</RouterLink>
             </div>
 
             <div class="mini-stats mini-stats-wide">
@@ -110,38 +224,24 @@
             </div>
           </section>
 
-          <section class="card">
-            <div class="section-heading">
-              <div>
-                <p class="eyebrow">Alerts</p>
-                <h3>Payment gap alerts</h3>
-              </div>
-            </div>
+          <ConnectionPanel
+            :api-base-url="apiBaseUrl"
+            :api-status="snapshot.apiStatus"
+            :last-refreshed="snapshot.lastRefreshed"
+            :property-count="snapshot.summary.totalProperties"
+          />
+        </div>
+      </div>
 
-            <EmptyState
-              v-if="paymentGapAlerts.length === 0"
-              title="No payment gaps this month"
-              description="All occupied properties are fully paid for the current month."
-            />
+      <section class="card">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Portfolio Trends</p>
+            <h3>Use these when you want more context</h3>
+          </div>
+        </div>
 
-            <div v-else class="record-list">
-              <article v-for="alert in paymentGapAlerts" :key="alert.property_id" class="card record-card">
-                <div class="card-header">
-                  <div>
-                    <strong>{{ alert.name }}</strong>
-                    <p class="muted">
-                      {{ alert.tenant_name || 'No tenant on file' }} · {{ getRentStatusLabel(alert.rentStatus) }}
-                    </p>
-                  </div>
-                  <strong class="amount-negative">{{ formatCurrency(alert.paymentGapValue) }}</strong>
-                </div>
-                <p class="muted">
-                  Collected {{ formatCurrency(alert.currentMonthIncomeValue) }} of {{ alert.monthly_rent }} expected this month.
-                </p>
-              </article>
-            </div>
-          </section>
-
+        <div class="detail-grid">
           <SimpleLineChart
             eyebrow="Cash Flow"
             title="Monthly income vs expenses"
@@ -150,22 +250,14 @@
             secondary-label="Expenses"
             :primary-formatter="formatCurrency"
           />
-        </div>
 
-        <div class="stack-lg">
-          <SimpleBarChart
-            eyebrow="Rent Roll"
-            title="Monthly rent by property"
-            :items="propertyRentBars"
-            :value-formatter="formatCurrency"
-          />
-
-          <section class="card">
+          <section class="card dashboard-secondary-card">
             <div class="section-heading">
               <div>
                 <p class="eyebrow">Ranking</p>
                 <h3>Profitability ranking</h3>
               </div>
+              <RouterLink class="button button-secondary" to="/properties">Compare properties</RouterLink>
             </div>
 
             <EmptyState
@@ -175,7 +267,11 @@
             />
 
             <div v-else class="record-list">
-              <article v-for="(property, index) in profitabilityRanking" :key="property.property_id" class="card record-card">
+              <article
+                v-for="(property, index) in profitabilityRanking"
+                :key="property.property_id"
+                class="card record-card"
+              >
                 <div class="card-header">
                   <div>
                     <strong>#{{ index + 1 }} {{ property.name }}</strong>
@@ -188,40 +284,8 @@
               </article>
             </div>
           </section>
-
-          <section class="card">
-            <div class="section-heading">
-              <div>
-                <p class="eyebrow">Timeline</p>
-                <h3>Portfolio activity timeline</h3>
-              </div>
-            </div>
-
-            <EmptyState
-              v-if="timelineItems.length === 0"
-              title="No activity in this range"
-              description="Adjust the date range to include income or expense activity."
-            />
-
-            <div v-else class="record-list">
-              <article v-for="item in timelineItems" :key="item.key" class="card record-card activity-card">
-                <div class="card-header">
-                  <div>
-                    <strong>{{ item.title }}</strong>
-                    <p class="muted">{{ item.propertyName }} · {{ item.description }}</p>
-                  </div>
-                  <div class="stack-sm activity-amount">
-                    <strong :class="item.type === 'income' ? 'amount-positive' : 'amount-negative'">
-                      {{ item.displayAmount }}
-                    </strong>
-                    <span class="muted">{{ formatDate(item.date) }}</span>
-                  </div>
-                </div>
-              </article>
-            </div>
-          </section>
         </div>
-      </div>
+      </section>
     </template>
   </section>
 </template>
@@ -235,7 +299,6 @@ import AlertMessage from '../components/AlertMessage.vue'
 import ConnectionPanel from '../components/ConnectionPanel.vue'
 import EmptyState from '../components/EmptyState.vue'
 import LoadingSkeleton from '../components/LoadingSkeleton.vue'
-import SimpleBarChart from '../components/SimpleBarChart.vue'
 import SimpleLineChart from '../components/SimpleLineChart.vue'
 import StatCard from '../components/StatCard.vue'
 import { formatCurrency, formatDate, inDateRange, parseCurrencyString } from '../utils/formatters'
@@ -276,6 +339,11 @@ const snapshot = ref({
   lastRefreshed: ''
 })
 
+const refreshedLabel = computed(() => {
+  if (!snapshot.value.lastRefreshed) return 'just now'
+  return formatDate(snapshot.value.lastRefreshed)
+})
+
 const filteredSummary = computed(() => {
   const incomeTotal = snapshot.value.properties.reduce(
     (sum, property) =>
@@ -301,13 +369,6 @@ const filteredSummary = computed(() => {
     netTotal: incomeTotal - expenseTotal
   }
 })
-
-const propertyRentBars = computed(() =>
-  snapshot.value.properties.map((property) => ({
-    label: property.name,
-    value: parseCurrencyString(property.monthly_rent)
-  }))
-)
 
 const monthlyTrend = computed(() => {
   const buckets = new Map()
@@ -375,10 +436,47 @@ const paymentGapAlerts = computed(() =>
     .slice(0, 6)
 )
 
+const vacantProperties = computed(() =>
+  snapshot.value.properties.filter((property) => property.rentStatus === 'vacant').slice(0, 6)
+)
+
+const priorityItems = computed(() => {
+  const items = []
+
+  if (paymentGapAlerts.value.length > 0) {
+    const alert = paymentGapAlerts.value[0]
+    items.push({
+      key: `gap-${alert.property_id}`,
+      title: `${alert.name} has a payment gap`,
+      detail: `${alert.tenant_name || 'Tenant not listed'} has ${formatCurrency(alert.paymentGapValue)} remaining this month.`,
+      to: `/properties/${alert.property_id}`
+    })
+  }
+
+  if (vacantProperties.value.length > 0) {
+    const property = vacantProperties.value[0]
+    items.push({
+      key: `vacant-${property.property_id}`,
+      title: `${property.name} is vacant`,
+      detail: 'Review the property record and update tenant details when it is leased again.',
+      to: `/properties/${property.property_id}`
+    })
+  }
+
+  items.push({
+    key: 'review-reports',
+    title: 'Review portfolio reporting',
+    detail: 'Use reports when you need exports, printable summaries, or a wider activity view.',
+    to: '/reports'
+  })
+
+  return items
+})
+
 const profitabilityRanking = computed(() =>
   [...snapshot.value.properties]
     .sort((left, right) => right.netCashFlowValue - left.netCashFlowValue)
-    .slice(0, 8)
+    .slice(0, 6)
 )
 
 const upcomingRent = computed(() => {
@@ -415,13 +513,6 @@ const deltas = computed(() => {
 
   return computeDelta(windowRange(start, end), windowRange(previousStart, previousEnd))
 })
-
-function getRentStatusLabel(status) {
-  if (status === 'paid') return 'Paid'
-  if (status === 'partial') return 'Partial'
-  if (status === 'late') return 'Late'
-  return 'Vacant'
-}
 
 function windowRange(start, end) {
   return {
