@@ -49,7 +49,7 @@
     <LoadingSkeleton v-if="loading" :count="8" />
 
     <template v-else>
-      <div class="stats-grid">
+      <div class="stats-grid dashboard-stats-grid">
         <StatCard label="Total Properties" :value="String(snapshot.summary.totalProperties)" />
         <StatCard label="Occupied" :value="String(snapshot.summary.occupiedProperties)" />
         <StatCard label="Vacant" :value="String(snapshot.summary.vacantProperties)" />

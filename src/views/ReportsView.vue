@@ -78,7 +78,7 @@
         </div>
       </section>
 
-      <div class="stats-grid">
+      <div class="stats-grid reports-stats-grid">
         <StatCard label="Properties" :value="String(snapshot.summary.totalProperties)" />
         <StatCard label="Income In Range" :value="formatCurrency(rangeTotals.income)" />
         <StatCard label="Expenses In Range" :value="formatCurrency(rangeTotals.expense)" />

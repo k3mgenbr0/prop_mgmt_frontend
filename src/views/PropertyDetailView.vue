@@ -6,7 +6,7 @@
     <LoadingState v-if="loading" label="Loading property details..." />
 
     <template v-else-if="summary">
-      <RouterLink class="back-link" to="/">&#60; Back to Dashboard</RouterLink>
+      <RouterLink class="back-link" to="/dashboard">&#60; Back to Dashboard</RouterLink>
 
       <section class="property-spotlight">
         <div class="property-identity">

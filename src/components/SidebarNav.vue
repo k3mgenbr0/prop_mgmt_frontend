@@ -57,7 +57,8 @@ import { RouterLink } from 'vue-router'
 import { useAccessibility } from '../composables/useAccessibility'
 
 const items = [
-  { to: '/', label: 'Dashboard', caption: 'Live metrics and portfolio summary' },
+  { to: '/', label: 'Home', caption: 'Start here and choose a workflow' },
+  { to: '/dashboard', label: 'Dashboard', caption: 'Live metrics and portfolio summary' },
   { to: '/properties', label: 'Properties', caption: 'All property records from the API' },
   { to: '/properties/new', label: 'Add Property', caption: 'Create a new property record' },
   { to: '/income', label: 'Income', caption: 'Income activity across the portfolio' },

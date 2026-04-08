@@ -136,6 +136,12 @@ The app makes the connection visible in the UI by showing:
 - portfolio activity timeline
 - property preview cards
 
+### Home
+
+- dedicated landing page for first-time users and demos
+- guided navigation cards to dashboard, properties, income, expenses, reports, and add-property flow
+- designed to make user testing easier by reducing initial confusion
+
 ### Properties
 
 - view all properties from the live API
@@ -376,9 +382,20 @@ Serves the built app from `dist/` using the `serve` package.
 
 This section is written for a first-time user.
 
-### 1. Open the Dashboard
+### 1. Start on Home
 
-When the app loads, the default route is the dashboard.
+When the app loads, the default route is the home landing page.
+
+Here you should see:
+- a simple landing experience
+- clear navigation cards for the main workflows
+- quick buttons for starting with the dashboard or properties
+
+This screen is meant to help first-time users quickly choose where to begin.
+
+### 2. Open the Dashboard
+
+From the landing page or the sidebar, open **Dashboard**.
 
 Here you should see:
 - summary cards
@@ -391,14 +408,14 @@ Here you should see:
 
 If the backend is reachable, the dashboard should populate automatically.
 
-### 2. Review the API connection panel
+### 3. Review the API connection panel
 
 Use the connection panel to verify:
 - which backend URL the app is using
 - whether the API responded successfully
 - when data was last refreshed
 
-### 3. Open the Properties page
+### 4. Open the Properties page
 
 Use the left sidebar to go to **Properties**.
 
@@ -414,13 +431,13 @@ This page shows:
 - saved property views and side-by-side comparison
 - CSV export for the currently filtered list
 
-### 4. Add a property
+### 5. Add a property
 
 Go to **Add Property** and complete the form.
 
 The form sends a `POST` request to the backend and redirects you to the new property detail page after a successful save.
 
-### 5. View a property detail page
+### 6. View a property detail page
 
 From the properties list, click **View Details**.
 
@@ -434,7 +451,7 @@ The detail page shows:
 - a property summary export and full ledger export
 - CSV export buttons for property-level transactions
 
-### 6. Edit or delete a property
+### 7. Edit or delete a property
 
 From the property card or detail page:
 - click **Edit** to update the property
@@ -442,7 +459,7 @@ From the property card or detail page:
 
 The UI includes confirmation before delete.
 
-### 7. Review income activity
+### 8. Review income activity
 
 Open **Income** in the sidebar.
 
@@ -457,7 +474,7 @@ You can:
 - view live charts based on the filtered data
 - browse income activity in a monthly calendar
 
-### 8. Review expense activity
+### 9. Review expense activity
 
 Open **Expenses** in the sidebar.
 
@@ -473,7 +490,7 @@ You can:
 - view charts based on the filtered data
 - browse expense activity in a monthly calendar
 
-### 9. Open Reports
+### 10. Open Reports
 
 Open **Reports** in the sidebar.
 
@@ -484,7 +501,7 @@ You can:
 - review a portfolio activity calendar for the selected month
 - print the report or export summary, transaction, and rent-gap CSVs
 
-### 10. Use the API Status page
+### 11. Use the API Status page
 
 Open **API Status** to validate frontend/backend integration.
 
